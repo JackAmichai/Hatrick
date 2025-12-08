@@ -4,6 +4,7 @@ import { SpeechBubble } from "./components/SpeechBubble";
 import { Announcer } from "./components/Announcer";
 import { ServerTower } from "./components/ServerTower";
 import { MITMAnimation } from "./components/MITMAnimation";
+import { MemoryStack } from "./components/MemoryStack"; // New Component
 import HatTrickHomepage from "./components/HatTrickHomepage"; // New Homepage
 import { useGameSocket } from "./hooks/useGameSocket";
 
@@ -24,13 +25,17 @@ const defenseTeam = [
 ];
 
 function App() {
-  const { messages, statuses, health, isHit, mitigationScore, startGame } = useGameSocket();
+  const { messages, statuses, health, isHit, mitigationScore, defenseDesc, startGame } = useGameSocket();
   const [roundState, setRoundState] = useState<"MENU" | "INTRO" | "FIGHT">("MENU"); // Changed initial state to MENU
   const [mission, setMission] = useState<string | null>(null);
 
   const startMission = (missionId: string) => {
     setMission(missionId);
     setRoundState("INTRO");
+  };
+
+  const handleStartGame = () => {
+    if (mission) startGame(mission);
   };
 
   // Helper to render a Hat with its Bubble
@@ -63,7 +68,7 @@ function App() {
           layerName={mission || "INFRASTRUCTURE LAYER"}
           onComplete={() => {
             setRoundState("FIGHT");
-            startGame(); // Triggers the websocket start
+            handleStartGame(); // Start with specific mission
           }}
         />
       )}
@@ -75,7 +80,7 @@ function App() {
 
       {roundState === "FIGHT" && (
         <button
-          onClick={startGame}
+          onClick={handleStartGame}
           className="z-20 mb-10 px-6 py-2 bg-blue-600 hover:bg-blue-500 rounded font-bold text-white transition-colors"
         >
           Restart Round
@@ -91,13 +96,23 @@ function App() {
           </div>
         </div>
 
-        {/* Center Stage: Tower OR MITM */}
+        {/* Center Stage: Tower OR MITM OR Stack */}
         <div className="pb-8 flex flex-col items-center gap-4">
-          {/* If not MITM, show Tower. If MITM but fight started, show Animation? */}
-          {/* Logic: Show Tower by default. If MITM selected, show MITM animation BELOW or INSTEAD. User asked for "additional step". */}
-          {/* Let's show Tower always for health, and MITM animation if active */}
 
-          <ServerTower health={health} isHit={isHit} />
+          {/* Logic:
+                - BUFFER_OVERFLOW -> MemoryStack
+                - MITM_ATTACK -> ServerTower + Animation
+                - DEFAULT -> ServerTower
+            */}
+
+          {mission === "BUFFER_OVERFLOW" ? (
+            <MemoryStack
+              fillLevel={Math.max(0, (100 - health) * 2)}
+              hasCanary={defenseDesc.toLowerCase().includes("canary")}
+            />
+          ) : (
+            <ServerTower health={health} isHit={isHit} />
+          )}
 
           {mission === "MITM_ATTACK" && roundState === "FIGHT" && (
             <div className="absolute top-20 z-50 animate-in fade-in slide-in-from-top-10 duration-1000">

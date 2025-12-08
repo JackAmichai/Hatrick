@@ -381,7 +381,10 @@ export default function HatTrickHomepage({ onSelect }: HomepageProps) {
 
                                             {/* Launch Button */}
                                             <button
-                                                onClick={() => onSelect(mission.missionId!)}
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    onSelect(mission.missionId!);
+                                                }}
                                                 className="w-full mt-4 py-3 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 rounded-lg font-bold text-sm text-white flex items-center justify-center gap-2 transition-all shadow-md hover:shadow-cyan-500/25"
                                             >
                                                 LAUNCH MISSION

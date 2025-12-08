@@ -11,6 +11,7 @@ interface GameEvent {
     text?: string;
     damage_taken?: number;
     mitigation_score?: number; // Added for MITM logic
+    defense_desc?: string; // Added for Stack logic
 }
 
 export const useGameSocket = () => {
@@ -19,6 +20,7 @@ export const useGameSocket = () => {
     const [health, setHealth] = useState(100);
     const [isHit, setIsHit] = useState(false);
     const [mitigationScore, setMitigationScore] = useState(0); // Added state
+    const [defenseDesc, setDefenseDesc] = useState(""); // Added state
     const socketRef = useRef<WebSocket | null>(null);
 
     useEffect(() => {
@@ -43,6 +45,9 @@ export const useGameSocket = () => {
                 if (data.mitigation_score !== undefined) {
                     setMitigationScore(data.mitigation_score);
                 }
+                if (data.defense_desc) {
+                    setDefenseDesc(data.defense_desc);
+                }
                 if (damage > 0) {
                     setIsHit(true);
                     setTimeout(() => setIsHit(false), 500);
@@ -53,13 +58,13 @@ export const useGameSocket = () => {
         return () => ws.close();
     }, []);
 
-    const startGame = () => {
+    const startGame = (missionId: string) => {
         if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
-            socketRef.current.send("START");
+            socketRef.current.send(JSON.stringify({ type: "START", mission: missionId }));
         } else {
             console.error("Socket not ready");
         }
     };
 
-    return { messages, statuses, health, isHit, mitigationScore, startGame };
+    return { messages, statuses, health, isHit, mitigationScore, defenseDesc, startGame };
 };

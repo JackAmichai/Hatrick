@@ -44,14 +44,34 @@ def calculate_impact(attack_dmg, defense_mit):
     return actual_damage
 
 # --- THE WEBSOCKET ENDPOINT ---
+# Scenario Contexts
+SCENARIOS = {
+    "NETWORK_FLOOD": "Target: Layer 3 Infrastructure. Scanning for bandwidth bottlenecks and accessible IPs.",
+    "BUFFER_OVERFLOW": "Target: Layer 7 Application Memory. Scanning for unchecked buffers, stack pointers, and return addresses.",
+    "SQL_INJECTION": "Target: Database Layer. Scanning for unsanitized input fields and SQL syntax errors.",
+    "MITM_ATTACK": "Target: Layer 5 Session. Scanning for unencrypted handshake protocols and key exchange vulnerabilities."
+}
+
 @app.websocket("/ws/game")
 async def websocket_endpoint(websocket: WebSocket):
     await manager.connect(websocket)
     try:
         while True:
-            # Wait for a "Start Round" signal from Frontend
+            # Wait for START command
+            # Expecting JSON: {"type": "START", "mission": "..."}
             data = await websocket.receive_text()
             
+            mission_id = "NETWORK_FLOOD" # Default
+            try:
+                msg = json.loads(data)
+                if msg.get("type") == "START":
+                    mission_id = msg.get("mission", "NETWORK_FLOOD")
+            except:
+                pass # Fallback if just string "START" sent (legacy)
+
+            print(f"Starting Game Loop for Mission: {mission_id}")
+            scenario_context = SCENARIOS.get(mission_id, SCENARIOS["NETWORK_FLOOD"])
+
             # --- START RED TEAM ---
             
             # 1. RED SCANNER
@@ -59,7 +79,8 @@ async def websocket_endpoint(websocket: WebSocket):
             
             # CALL REAL AI
             try:
-                scan_result = scanner_chain.invoke({"layer_info": "OSI Layer 3 (Network) - Legacy Router IP 192.168.0.1"})
+                # Using the Scenario Context directly to Prime the Scanner
+                scan_result = scanner_chain.invoke({"layer_info": scenario_context})
             except Exception as e:
                 scan_result = f"Error: {str(e)} (Check GROQ_API_KEY)"
 
