@@ -1,73 +1,56 @@
-# React + TypeScript + Vite
+# 🎩 HatTrick: The Agentic Cyber-Arena
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+**HatTrick** is a real-time cybersecurity visualization platform where autonomous AI agents (Red Team vs. Blue Team) battle in simulated scenarios.
 
-Currently, two official plugins are available:
+Powered by **Groq** (Llama-3, Phi-3), **LangChain**, and **React**.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+![HatTrick Screenshot](https://github.com/JackAmichai/Hatrick/assets/placeholder/homepage.png)
 
-## React Compiler
+## 🎮 Features
+- **3D Orbital Homepage**: Select your mission from a dynamic 3-layer orbit. (Light/Dark Mode supported).
+- **Sequential Adversarial Flow**:
+    - **Red Team (Attackers)**: GPT-4, Llama-3, Gemini. They scan, weaponize, and launch attacks.
+    - **Blue Team (Defenders)**: Claude-3, Phi-3, Command R+. They analyze, engineer, and patch vulnerabilities.
+- **Visualized Scenarios**:
+    - **Packet Storm**: Layer 3 Volumetric Attack.
+    - **Handshake Hijack (MITM)**: Visualized "Red Hat" interception on the wire.
+- **Server Tower**: Real-time health integrity monitoring.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## 🚀 Getting Started
 
-## Expanding the ESLint configuration
+### Prerequisites
+- Python 3.10+
+- Node.js 18+
+- A [Groq API Key](https://console.groq.com/keys)
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### 1. Backend (The Brains)
+```bash
+cd backend
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+export GROQ_API_KEY="your_api_key_here"
+uvicorn main:app --reload
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### 2. Frontend (The Arena)
+```bash
+# In a new terminal
+npm install
+npm run dev
 ```
+Visit http://localhost:5173
+
+## 🏗️ Architecture
+- **Frontend**: Vite + React + TypeScript + Framer Motion.
+- **Backend**: FastAPI (WebSockets) + LangChain.
+- **AI**: Groq (LPU Inference Engine) for sub-second agent responses.
+
+## 🛡️ Missions
+1. **Network Flood**: Defend against DDoS.
+2. **Buffer Overflow**: Prevent stack corruption (Coming Soon).
+3. **Data Heist**: Stop SQL Injection.
+4. **Handshake Hijack**: Secure the MITM exchange.
+
+## 📜 License
+MIT
