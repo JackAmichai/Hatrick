@@ -1,9 +1,8 @@
 import os
 import random
-from langchain_groq import ChatGroq
-from langchain_huggingface import HuggingFaceEndpoint
-from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.output_parsers import StrOutputParser, JsonOutputParser
+
+# NOTE: langchain imports are done lazily inside get_llm() to avoid crashing
+# the module if a package is missing. This allows DummyChain fallback to work.
 
 # --- ROBUST MOCK DATA ---
 MOCK_FILE = {
@@ -89,11 +88,13 @@ def get_llm(provider, model_name, temperature=0.7):
         
         elif provider == "huggingface":
             if not os.getenv("HUGGINGFACEHUB_API_TOKEN"): raise ValueError("Missing HF Token")
+            from langchain_huggingface import HuggingFaceEndpoint
             return HuggingFaceEndpoint(repo_id=model_name, temperature=temperature, task="text-generation")
         
         elif provider == "groq":
-             if not os.getenv("GROQ_API_KEY"): raise ValueError("Missing Groq Key")
-             return ChatGroq(temperature=temperature, model_name=model_name)
+            if not os.getenv("GROQ_API_KEY"): raise ValueError("Missing Groq Key")
+            from langchain_groq import ChatGroq
+            return ChatGroq(temperature=temperature, model_name=model_name)
 
     except Exception as e:
         print(f"⚠️ {provider} Init Failed: {e}")
@@ -119,16 +120,26 @@ def create_chain(llm, system_prompt, json_parser=False):
         
         return DummyChain(role, json_mode=json_parser)
         
-    # Real Chain Construction
-    prompt = ChatPromptTemplate.from_messages([
-        ("system", system_prompt),
-        ("human", "{input}") 
-    ])
-    
-    chain = prompt | llm
-    if json_parser:
-        return chain | JsonOutputParser()
-    return chain | StrOutputParser()
+    # Real Chain Construction - import here to avoid top-level dependency issues
+    try:
+        from langchain_core.prompts import ChatPromptTemplate
+        from langchain_core.output_parsers import StrOutputParser, JsonOutputParser
+        
+        prompt = ChatPromptTemplate.from_messages([
+            ("system", system_prompt),
+            ("human", "{input}") 
+        ])
+        
+        chain = prompt | llm
+        if json_parser:
+            return chain | JsonOutputParser()
+        return chain | StrOutputParser()
+    except Exception as e:
+        print(f"⚠️ Chain construction failed: {e}. Using DummyChain.")
+        role = "red_scanner"
+        if "Viper" in system_prompt or "Captain" in system_prompt:
+            role = "red_commander" if "Viper" in system_prompt else "blue_commander"
+        return DummyChain(role, json_mode=json_parser)
 
 # Initialize LLMs (may return None)
 red_scanner_llm = get_llm("huggingface", "google/gemma-7b-it", 0.5)
