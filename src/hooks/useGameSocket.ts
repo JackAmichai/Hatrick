@@ -40,7 +40,7 @@ export const useGameSocket = () => {
 
     const runMockMode = () => {
         console.warn("Falling back to INTERACTIVE MOCK MODE");
-        mockStepRef.current = 0; // Reset step
+        mockStepRef.current = 1; // RESET TO 1 TO START IMMEDIATELY
 
         // Clear any existing interval
         if (mockIntervalRef.current) clearInterval(mockIntervalRef.current);
