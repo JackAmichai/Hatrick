@@ -169,28 +169,34 @@ async def websocket_endpoint(websocket: WebSocket):
             while not red_approved:
                 # 1. RED SCANNER
                 await manager.broadcast({"type": "STATE_UPDATE", "agent": "RED_SCANNER", "status": "THINKING"})
+                await asyncio.sleep(2) # Simulated thinking time
                 try:
-                    scan_result = scanner_chain.invoke({"layer_info": scenario_context})
+                    scan_result = scanner_chain.invoke({"input": scenario_context})
                     last_turn_context['scan_result'] = scan_result
                 except Exception as e:
                     scan_result = f"Error: {str(e)}"
                 await manager.broadcast({"type": "NEW_MESSAGE", "agent": "RED_SCANNER", "text": scan_result})
                 await manager.broadcast({"type": "STATE_UPDATE", "agent": "RED_SCANNER", "status": "IDLE"})
+                await asyncio.sleep(3) # Readability delay
                 
                 # 2. RED WEAPONIZER
                 await manager.broadcast({"type": "STATE_UPDATE", "agent": "RED_WEAPONIZER", "status": "THINKING"})
+                await asyncio.sleep(2)
                 try:
-                    attack_options = weaponizer_chain.invoke({"scan_result": scan_result})
+                    attack_options = weaponizer_chain.invoke({"input": scan_result})
                     last_turn_context['attack_options'] = attack_options
                 except Exception as e:
                     attack_options = "Error: Offline"
                 await manager.broadcast({"type": "NEW_MESSAGE", "agent": "RED_WEAPONIZER", "text": attack_options})
                 await manager.broadcast({"type": "STATE_UPDATE", "agent": "RED_WEAPONIZER", "status": "IDLE"})
+                await asyncio.sleep(3)
 
                 # 3. RED COMMANDER (PROPOSAL)
                 await manager.broadcast({"type": "STATE_UPDATE", "agent": "RED_COMMANDER", "status": "THINKING"})
+                await asyncio.sleep(2)
                 try:
-                    final_move_json = commander_chain.invoke({"options": attack_options})
+                    # Input key changed to 'input' in new logic
+                    final_move_json = commander_chain.invoke({"input": attack_options})
                     attack_name = final_move_json.get('attack_name', 'Unknown')
                     damage = final_move_json.get('damage', 0)
                     attack_desc = final_move_json.get('visual_desc', 'Proposed Attack')
@@ -223,6 +229,7 @@ async def websocket_endpoint(websocket: WebSocket):
                     pass
                 
                 await manager.broadcast({"type": "STATE_UPDATE", "agent": "RED_COMMANDER", "status": "IDLE"})
+                await asyncio.sleep(1)
 
 
             # --- BLUE TEAM LOOP ---
@@ -231,28 +238,33 @@ async def websocket_endpoint(websocket: WebSocket):
             while not blue_approved:
                 # 1. BLUE WATCHMAN
                 await manager.broadcast({"type": "STATE_UPDATE", "agent": "BLUE_SCANNER", "status": "THINKING"})
+                await asyncio.sleep(2)
                 try:
-                    analysis = watchman_chain.invoke({"attack_info": attack_name})
+                    analysis = watchman_chain.invoke({"input": attack_name})
                     last_turn_context['analysis'] = analysis
                 except Exception as e:
                     analysis = "Error: Offline"
                 await manager.broadcast({"type": "NEW_MESSAGE", "agent": "BLUE_SCANNER", "text": analysis})
                 await manager.broadcast({"type": "STATE_UPDATE", "agent": "BLUE_SCANNER", "status": "IDLE"})
+                await asyncio.sleep(3)
 
                 # 2. BLUE ENGINEER
                 await manager.broadcast({"type": "STATE_UPDATE", "agent": "BLUE_WEAPONIZER", "status": "THINKING"})
+                await asyncio.sleep(2)
                 try:
-                    defense_options = engineer_chain.invoke({"analysis": analysis})
+                    defense_options = engineer_chain.invoke({"input": analysis})
                     last_turn_context['defense_options'] = defense_options
                 except Exception as e:
                     defense_options = "Default Firewall"
                 await manager.broadcast({"type": "NEW_MESSAGE", "agent": "BLUE_WEAPONIZER", "text": defense_options})
                 await manager.broadcast({"type": "STATE_UPDATE", "agent": "BLUE_WEAPONIZER", "status": "IDLE"})
+                await asyncio.sleep(3)
 
                 # 3. BLUE WARDEN (PROPOSAL)
                 await manager.broadcast({"type": "STATE_UPDATE", "agent": "BLUE_COMMANDER", "status": "THINKING"})
+                await asyncio.sleep(2)
                 try:
-                    defense_json = warden_chain.invoke({"options": defense_options})
+                    defense_json = warden_chain.invoke({"input": defense_options})
                     defense_name = defense_json.get('defense_name', 'Shield')
                     mitigation = defense_json.get('mitigation_score', 0)
                     defense_desc = defense_json.get('visual_desc', 'Shield Active')

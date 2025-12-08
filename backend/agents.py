@@ -5,137 +5,145 @@ from langchain_huggingface import HuggingFaceEndpoint
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser, JsonOutputParser
 
-# --- SAFE FALLBACK (NO DEPENDENCIES) ---
-class DummyLLM:
-    """A vanilla Python Mock LLM that requires NO external libraries."""
-    def __init__(self, responses=None):
-        self.responses = responses or ["System OK", "No threats detected"]
-    
-    def invoke(self, input_data):
-        # Simulate LangChain invoke
-        return random.choice(self.responses)
-
-    def __or__(self, other):
-        # Allow pipe chaining (chain = prompt | llm | parser)
-        # We just return self because we want to short-circuit the parser too if possible,
-        # OR we simulate the chain behavior.
-        # Ideally, we return a DummyChain.
-        return DummyChain(self.responses)
+# --- ROBUST MOCK DATA ---
+MOCK_FILE = {
+    "red_scanner": [
+        "Scanning target dependencies... found outdated OpenSSL version.",
+        "Probing port 443... detected weak cipher suites in handshake.",
+        "Analyzing HTTP headers... missing X-Frame-Options and CSP.",
+        "Traceroute complete. Identified latency spikes in sub-net 10.0.x.",
+        "Enumerating public API endpoints... discovered undocumented /admin route."
+    ],
+    "red_weaponizer": [
+        "Compiling Heartbleed exploit package for injected payload.",
+        "Drafting SQL injection query with UNION SELECT sleep(5).",
+        "Preparing Cross-Site Scripting (XSS) vector via base64 encoding.",
+        "Configuring packet flood with randomized source IPs.",
+        "Generating brute-force dictionary for default credentials."
+    ],
+    "red_commander": [
+        {"attack_name": "Heartbleed Exfiltration", "damage": 85, "visual_desc": "Memory Leak Stream"},
+        {"attack_name": "Blind SQL Injection", "damage": 70, "visual_desc": "Database Query Drop"},
+        {"attack_name": "ICMP Flood", "damage": 40, "visual_desc": "Traffic Spike"},
+        {"attack_name": "Admin Bypass", "damage": 90, "visual_desc": "Privilege Escalation"},
+        {"attack_name": "DOM-Based XSS", "damage": 55, "visual_desc": "Script Execution"}
+    ],
+    "blue_scanner": [
+        "IDS alert! Signature match for CVE-2014-0160.",
+        "Traffic anomally detected. Request volume exceeds baseline by 400%.",
+        "Log analysis reveals repeated syntax errors in database queries.",
+        "Unauthorized session token usage detected on admin port.",
+        "Heuristic scanner flagged obfuscated JavaScript payload."
+    ],
+    "blue_weaponizer": [
+        "Recommending immediate patch application and service restart.",
+        "Proposing IP ban for offending subnet and rate limiting.",
+        "Suggesting WAF rule update to block SQL control characters.",
+        "Advising session invalidation and forced password reset.",
+        "Input sanitization fliter deployment recommended."
+    ],
+    "blue_commander": [
+        {"defense_name": "Hotfix Deployment", "mitigation_score": 90, "visual_desc": "Patching Binary"},
+        {"defense_name": "IP Blacklist", "mitigation_score": 60, "visual_desc": "Firewall Block"},
+        {"defense_name": "WAF Rule ID-104", "mitigation_score": 80, "visual_desc": "Filter Active"},
+        {"defense_name": "Session Killswitch", "mitigation_score": 95, "visual_desc": "Access Revoked"},
+        {"defense_name": "Input Scrubber", "mitigation_score": 75, "visual_desc": "Sanitization Layer"}
+    ]
+}
 
 class DummyChain:
-    def __init__(self, responses):
-        self.responses = responses
+    def __init__(self, role, json_mode=False):
+        self.role = role
+        self.json_mode = json_mode
     
     def invoke(self, input_data):
-        val = random.choice(self.responses)
-        # If the parser expects JSON, we should try to give mock JSON if needed.
-        # But for safety, we return a string or simple dict.
-        # If the downstream expects specific keys, we might break.
-        # Let's try to be smart.
-        if "options" in str(input_data): # Heuristic for Commander
-            return {"attack_name": "Mock Attack", "damage": 10, "visual_desc": "Simulated Packet Storm"}
-        return val
+        # Add slight randomness to pick a distinct response each time
+        options = MOCK_FILE.get(self.role, ["System Processing..."])
+        selected = random.choice(options)
+        
+        # If we need to return JSON, ensure it's a dict
+        if self.json_mode:
+            if isinstance(selected, dict):
+                return selected
+            # Fallback if list has strings but we need dict (shouldnt happen with correct MOCK_FILE)
+            return {"action": "Standard Operation", "value": 50, "visual_desc": "Processing"}
+            
+        # If we need text but got dict (rare)
+        if isinstance(selected, dict):
+            return str(selected)
+            
+        return selected
+
+class DummyLLM:
+    """Pass-through for when we simply must have an object"""
+    def invoke(self, *args, **kwargs):
+        return "Mock LLM Response"
 
 # --- LLM FACTORY WITH FALLBACK ---
 def get_llm(provider, model_name, temperature=0.7):
-    """
-    Factory to get LLM from various providers.
-    """
     try:
-        # 1. OPENAI (GPT-4)
         if provider == "openai":
-            if not os.getenv("OPENAI_API_KEY"):
-                raise ValueError("Missing OpenAI Key")
+            if not os.getenv("OPENAI_API_KEY"): raise ValueError("Missing OpenAI Key")
             from langchain_openai import ChatOpenAI
-            print(f"✅ LOADED: OpenAI ({model_name})")
             return ChatOpenAI(temperature=temperature, model_name=model_name)
         
-        # 2. HUGGING FACE
         elif provider == "huggingface":
-            if not os.getenv("HUGGINGFACEHUB_API_TOKEN"):
-                raise ValueError("Missing Hugging Face Token")
+            if not os.getenv("HUGGINGFACEHUB_API_TOKEN"): raise ValueError("Missing HF Token")
             return HuggingFaceEndpoint(repo_id=model_name, temperature=temperature, task="text-generation")
         
-        # 3. ANTHROPIC
-        elif provider == "anthropic":
-            if not os.getenv("ANTHROPIC_API_KEY"):
-                raise ValueError("Missing Anthropic Key")
-            from langchain_anthropic import ChatAnthropic
-            return ChatAnthropic(temperature=temperature, model_name=model_name)
+        elif provider == "groq":
+             if not os.getenv("GROQ_API_KEY"): raise ValueError("Missing Groq Key")
+             return ChatGroq(temperature=temperature, model_name=model_name)
 
     except Exception as e:
-        print(f"⚠️ FALLBACK: {provider} failed ({str(e)}). Checking replacements...")
+        print(f"⚠️ {provider} Init Failed: {e}")
     
-    # FALLBACK SEQUENCE
-    
-    # 1. Groq
-    try:
-        if os.getenv("GROQ_API_KEY"):
-            fallback_model = "llama-3.3-70b-versatile" if temperature < 0.6 else "llama-3.1-8b-instant"
-            return ChatGroq(temperature=temperature, model_name=fallback_model)
-    except:
-        pass
-
-    # 2. Mock (Safe)
-    print("⚠️ CRITICAL: Using Vanilla Mock LLM.")
-    return DummyLLM()
-
-# --- MODEL ROSTER ---
-
-red_commander_llm = get_llm("openai", "gpt-4-turbo", temperature=0.6)
-red_weaponizer_llm = get_llm("huggingface", "mistralai/Mistral-7B-Instruct-v0.2", temperature=0.8)
-red_scanner_llm = get_llm("huggingface", "google/gemma-7b-it", temperature=0.5)
-
-blue_commander_llm = get_llm("huggingface", "microsoft/Phi-3-mini-4k-instruct", temperature=0.5)
-blue_weaponizer_llm = get_llm("huggingface", "HuggingFaceH4/zephyr-7b-beta", temperature=0.7)
-blue_scanner_llm = get_llm("groq", "llama-3.1-8b-instant", temperature=0.5)
+    # Return None to signal we should use DummyChain directly later
+    return None 
 
 # --- AGENT CHAINS ---
 
-# We need to wrap construction in try/except because | operator might fail if LLM is Dummy
-try:
-    scanner_prompt = ChatPromptTemplate.from_messages([
-        ("system", "You are 'Scope'. Output a 1-sentence observation."),
-        ("human", "{layer_info}")
-    ])
-    scanner_chain = scanner_prompt | red_scanner_llm | StrOutputParser()
+# We define them loosely. If LLM is None, we assign a DummyChain.
+# If LLM is valid, we build the real chain.
 
-    weaponizer_prompt = ChatPromptTemplate.from_messages([
-        ("system", "You are 'Zero'. Propose attack."),
-        ("human", "{scan_result}")
+def create_chain(llm, system_prompt, json_parser=False):
+    if llm is None:
+        # Determine likely role from prompt content for mock fallback
+        role = "red_scanner" # Default
+        if "Scope" in system_prompt: role = "red_scanner"
+        elif "Zero" in system_prompt: role = "red_weaponizer"
+        elif "Viper" in system_prompt: role = "red_commander"
+        elif "Sentinel" in system_prompt: role = "blue_scanner"
+        elif "Patch" in system_prompt: role = "blue_weaponizer"
+        elif "Captain" in system_prompt: role = "blue_commander"
+        
+        return DummyChain(role, json_mode=json_parser)
+        
+    # Real Chain Construction
+    prompt = ChatPromptTemplate.from_messages([
+        ("system", system_prompt),
+        ("human", "{input}") 
     ])
-    weaponizer_chain = weaponizer_prompt | red_weaponizer_llm | StrOutputParser()
+    
+    chain = prompt | llm
+    if json_parser:
+        return chain | JsonOutputParser()
+    return chain | StrOutputParser()
 
-    commander_prompt = ChatPromptTemplate.from_messages([
-        ("system", "You are 'Viper'. Return JSON."),
-        ("human", "{options}")
-    ])
-    commander_chain = commander_prompt | red_commander_llm | JsonOutputParser()
+# Initialize LLMs (may return None)
+red_scanner_llm = get_llm("huggingface", "google/gemma-7b-it", 0.5)
+red_weaponizer_llm = get_llm("huggingface", "mistralai/Mistral-7B-Instruct-v0.2", 0.8)
+red_commander_llm = get_llm("openai", "gpt-4-turbo", 0.6)
 
-    watchman_prompt = ChatPromptTemplate.from_messages([
-        ("system", "You are 'Sentinel'. Analyze attack."),
-        ("human", "{attack_info}")
-    ])
-    watchman_chain = watchman_prompt | blue_scanner_llm | StrOutputParser()
+blue_scanner_llm = get_llm("groq", "llama-3.1-8b-instant", 0.5)
+blue_weaponizer_llm = get_llm("huggingface", "HuggingFaceH4/zephyr-7b-beta", 0.7)
+blue_commander_llm = get_llm("huggingface", "microsoft/Phi-3-mini-4k-instruct", 0.5)
 
-    engineer_prompt = ChatPromptTemplate.from_messages([
-        ("system", "You are 'Patch'. Propose defense."),
-        ("human", "{analysis}")
-    ])
-    engineer_chain = engineer_prompt | blue_weaponizer_llm | StrOutputParser()
+# Create Chains
+scanner_chain = create_chain(red_scanner_llm, "You are 'Scope'. Output a 1-sentence observation.")
+weaponizer_chain = create_chain(red_weaponizer_llm, "You are 'Zero'. Propose attack.")
+commander_chain = create_chain(red_commander_llm, "You are 'Viper'. Return JSON.", json_parser=True)
 
-    warden_prompt = ChatPromptTemplate.from_messages([
-        ("system", "You are 'Captain'. Return JSON."),
-        ("human", "{options}")
-    ])
-    warden_chain = warden_prompt | blue_commander_llm | JsonOutputParser()
-
-except Exception as e:
-    print(f"⚠️ Chain Construction Failed: {e}. Using Dummy Chains.")
-    # Total Fallback if LangChain piping dies
-    scanner_chain = DummyChain(["Scan Complete"])
-    weaponizer_chain = DummyChain(["Attack Vector: SQLi"])
-    commander_chain = DummyChain([{"attack_name": "Mock Strike", "damage": 50, "visual_desc": "Red Laser"}])
-    watchman_chain = DummyChain(["Analysis: Malicious Packet"])
-    engineer_chain = DummyChain(["Defense: Firewall"])
-    warden_chain = DummyChain([{"defense_name": "Mock Shield", "mitigation_score": 50, "visual_desc": "Blue Forcefield"}])
+watchman_chain = create_chain(blue_scanner_llm, "You are 'Sentinel'. Analyze attack.")
+engineer_chain = create_chain(blue_weaponizer_llm, "You are 'Patch'. Propose defense.")
+warden_chain = create_chain(blue_commander_llm, "You are 'Captain'. Return JSON.", json_parser=True)
