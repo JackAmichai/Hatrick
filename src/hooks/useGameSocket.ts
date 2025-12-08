@@ -45,6 +45,35 @@ export const useGameSocket = () => {
         // Clear any existing interval
         if (mockIntervalRef.current) clearInterval(mockIntervalRef.current);
 
+        // RANDOMIZE MOCK SCRIPTS
+        const variants = [
+            {
+                scan: "Target Acquired: Simulated Vulnerability found on Layer 7.",
+                weapon: "Compiling Payload: SQL Injection vs Localhost.",
+                proposal: "SQL Injection",
+                desc: "Inject malicious SQL query to bypass authentication. Est. Damage: 15%",
+                blueScan: "Anomaly Detected: Unauthorized DB Access signature.",
+                blueWeap: "Deploying WAF Ruleset: BLOCK_SQLI."
+            },
+            {
+                scan: "Target Acquired: Exposed Port 8080 found in subnet.",
+                weapon: "Crafting Payload: Buffer Overflow via HTTP Header.",
+                proposal: "Buffer Overflow",
+                desc: "Send malformed header to crash service. Est. Damage: 25%",
+                blueScan: "Alert: Memory Segmentation Fault predicted.",
+                blueWeap: "Activating: ASLR & Stack Guardians."
+            },
+            {
+                scan: "Target Acquired: Weak Encryption Key Exchange detected.",
+                weapon: "Initializing: MITM Interception Module.",
+                proposal: "MITM Attack",
+                desc: "Intercept handshake and downgrade TLS. Est. Damage: 20%",
+                blueScan: "Warning: Certificate Authority Mismatch.",
+                blueWeap: "Enforcing: HSTS & Cert Pinning."
+            }
+        ];
+        const script = variants[Math.floor(Math.random() * variants.length)];
+
         mockIntervalRef.current = setInterval(() => {
             const step = mockStepRef.current; // Current step
 
@@ -57,15 +86,13 @@ export const useGameSocket = () => {
             }
             // 2. Red Scanner (Result)
             else if (step === 2) {
-                // EXCLUSIVE SPEECH: Only Scanner speaks
-                setMessages({ RED_SCANNER: "Target Acquired: Simulated Vulnerability found on Layer 7." });
+                setMessages({ RED_SCANNER: script.scan });
                 setStatuses(prev => ({ ...prev, RED_SCANNER: "IDLE", RED_WEAPONIZER: "THINKING" }));
                 mockStepRef.current++;
             }
             // 3. Red Weaponizer (Result)
             else if (step === 3) {
-                // EXCLUSIVE SPEECH: Only Weaponizer speaks
-                setMessages({ RED_WEAPONIZER: "Compiling Payload: SQL Injection vs Localhost." });
+                setMessages({ RED_WEAPONIZER: script.weapon });
                 setStatuses(prev => ({ ...prev, RED_WEAPONIZER: "IDLE", RED_COMMANDER: "THINKING" }));
                 mockStepRef.current++;
             }
@@ -73,8 +100,8 @@ export const useGameSocket = () => {
             else if (step === 4) {
                 setProposal({
                     team: "RED",
-                    action: "SQL Injection",
-                    description: "Inject malicious SQL query to bypass authentication. Est. Damage: 15%"
+                    action: script.proposal,
+                    description: script.desc
                 });
                 // DO NOT INCREMENT STEP automatically. Wait for submitDecision.
             }
@@ -92,19 +119,19 @@ export const useGameSocket = () => {
 
             // 6. Blue Watchman (Thinking)
             else if (step === 6) {
-                setMessages(prev => ({ ...prev, BLUE_SCANNER: "Thinking..." })); // Show thinking
+                setMessages(prev => ({ ...prev, BLUE_SCANNER: "Thinking..." }));
                 setStatuses(prev => ({ ...prev, BLUE_SCANNER: "THINKING" }));
                 mockStepRef.current++;
             }
             // 7. Blue Watchman result
             else if (step === 7) {
-                setMessages({ BLUE_SCANNER: "Anomaly Detected: Unauthorized DB Access signature." });
+                setMessages({ BLUE_SCANNER: script.blueScan });
                 setStatuses(prev => ({ ...prev, BLUE_SCANNER: "IDLE", BLUE_WEAPONIZER: "THINKING" }));
                 mockStepRef.current++;
             }
             // 8. Blue Engineering (Result)
             else if (step === 8) {
-                setMessages({ BLUE_WEAPONIZER: "Deploying WAF Ruleset: BLOCK_SQLI." });
+                setMessages({ BLUE_WEAPONIZER: script.blueWeap });
                 setStatuses(prev => ({ ...prev, BLUE_WEAPONIZER: "IDLE", BLUE_COMMANDER: "THINKING" }));
                 mockStepRef.current++;
             }
@@ -112,15 +139,15 @@ export const useGameSocket = () => {
             else if (step === 9) {
                 setProposal({
                     team: "BLUE",
-                    action: "WAF Update",
-                    description: "Deploy new WAF rules to block SQL Injection patterns. Mitigation: 85%"
+                    action: "Defensive Measures",
+                    description: "Deploying Countermeasures. Mitigation: 85%"
                 });
                 // DO NOT INCREMENT STEP automatically.
             }
             // 10. BLUE EXECUTE (Resume after approval)
             else if (step === 10) {
                 setMessages({ BLUE_COMMANDER: "System Secure. Mitigation Active." });
-                setDefenseDesc("WAF Shield Active 🛡️");
+                setDefenseDesc("Shield Active 🛡️");
                 setMitigationScore(85);
                 setStatuses(prev => ({ ...prev, BLUE_COMMANDER: "IDLE" }));
 
