@@ -29,6 +29,9 @@ function App() {
   const [roundState, setRoundState] = useState<"MENU" | "INTRO" | "FIGHT">("MENU"); // Changed initial state to MENU
   const [mission, setMission] = useState<string | null>(null);
 
+  // Logical Progression: Network (L3) -> MITM (L5) -> Stack (L7) -> Data (L7)
+  const MISSION_ORDER = ["NETWORK_FLOOD", "HANDSHAKE_HIJACK", "MITM_ATTACK", "BUFFER_OVERFLOW", "DATA_HEIST"];
+
   const startMission = (missionId: string) => {
     setMission(missionId);
     setRoundState("INTRO");
@@ -42,6 +45,14 @@ function App() {
     resetState();
     setRoundState("MENU");
     setMission(null);
+  };
+
+  const handleNextLevel = () => {
+    resetState();
+    const currentIndex = MISSION_ORDER.indexOf(mission || "");
+    const nextIndex = (currentIndex + 1) % MISSION_ORDER.length; // Loop back or stop
+    const nextMission = MISSION_ORDER[nextIndex];
+    startMission(nextMission);
   };
 
   // Helper to render a Hat with its Bubble
@@ -169,6 +180,16 @@ function App() {
           </div>
         </div>
       </div>
+
+      {/* NEXT LAYER BUTTON (Bottom Right) */}
+      {roundState === "FIGHT" && (
+        <button
+          onClick={handleNextLevel}
+          className="absolute bottom-4 right-4 z-50 px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold border border-indigo-400 rounded-lg shadow-lg transition-transform hover:scale-105 flex items-center gap-2"
+        >
+          NEXT LAYER ➡️
+        </button>
+      )}
     </div>
   );
 }

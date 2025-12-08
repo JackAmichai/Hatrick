@@ -27,7 +27,6 @@ export const MemoryStack = ({ fillLevel, hasCanary }: { fillLevel: number, hasCa
 
                 {/* THE BUFFER (The Container) */}
                 <div className="relative h-48 border-x-2 border-b-2 border-blue-500/30 bg-slate-900 rounded-b overflow-hidden flex items-end justify-center">
-                    <span className="absolute top-2 left-2 text-slate-500 z-10">char buf[64]</span>
 
                     {/* The "Liquid" filling up */}
                     <motion.div
@@ -36,9 +35,6 @@ export const MemoryStack = ({ fillLevel, hasCanary }: { fillLevel: number, hasCa
                         animate={{ height: `${Math.min(fillLevel, 120)}%` }} // Allow it to go over 100%
                         transition={{ duration: 1.5, ease: "easeOut" }}
                     />
-
-                    {/* Code Rain Effect overlaying the logic */}
-                    <div className="absolute inset-0 opacity-20 pointer-events-none bg-[url('https://media.giphy.com/media/26tn33aiTi1jkl6HC/giphy.gif')] bg-cover mix-blend-screen" />
                 </div>
             </div>
         </div>

@@ -118,6 +118,14 @@ export const useGameSocket = () => {
     const requestSummary = (team: "RED" | "BLUE") => {
         if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
             socketRef.current.send(JSON.stringify({ type: "SUMMARIZE", team }));
+        } else {
+            // MOCK SUMMARY (Fallback for Vercel/Offline)
+            console.log("Generating Mock Summary...");
+            if (team === 'RED') {
+                setMessages(prev => ({ ...prev, RED_COMMANDER: "📢 RED REPORT: Scanned Localhost... Found SQLi Vector... Executed Payload." }));
+            } else {
+                setMessages(prev => ({ ...prev, BLUE_COMMANDER: "🛡️ BLUE REPORT: Detected Signature... WAF Ruleset Updated... Attack Mitigated." }));
+            }
         }
     };
 
