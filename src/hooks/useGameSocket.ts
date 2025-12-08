@@ -115,5 +115,20 @@ export const useGameSocket = () => {
         }
     };
 
-    return { messages, statuses, health, isHit, mitigationScore, defenseDesc, startGame };
+    const requestSummary = (team: "RED" | "BLUE") => {
+        if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
+            socketRef.current.send(JSON.stringify({ type: "SUMMARIZE", team }));
+        }
+    };
+
+    const resetState = () => {
+        setHealth(100);
+        setMessages({});
+        setStatuses({});
+        setIsHit(false);
+        setMitigationScore(0);
+        setDefenseDesc("");
+    };
+
+    return { messages, statuses, health, isHit, mitigationScore, defenseDesc, startGame, requestSummary, resetState };
 };

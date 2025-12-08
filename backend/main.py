@@ -57,18 +57,59 @@ async def websocket_endpoint(websocket: WebSocket):
     await manager.connect(websocket)
     try:
         while True:
-            # Wait for START command
-            # Expecting JSON: {"type": "START", "mission": "..."}
+            # --- CONTEXT PERSISTENCE ---
+            # We store the last turn's data to allow for summarization
+            # Initialize with defaults if not present
+            if 'last_turn_context' not in locals():
+                last_turn_context = {
+                    "scan_result": "None",
+                    "attack_options": "None",
+                    "attack_name": "None",
+                    "analysis": "None",
+                    "defense_options": "None",
+                    "defense_name": "None"
+                }
+
+            # Wait for command
+            # Expecting JSON: {"type": "START", ...} OR {"type": "SUMMARIZE", "team": "RED"/"BLUE"}
             data = await websocket.receive_text()
             
-            mission_id = "NETWORK_FLOOD" # Default
+            command_type = "START"
+            mission_id = "NETWORK_FLOOD"
+            target_team = "RED"
+
             try:
                 msg = json.loads(data)
-                if msg.get("type") == "START":
+                command_type = msg.get("type", "START")
+                if command_type == "START":
                     mission_id = msg.get("mission", "NETWORK_FLOOD")
+                elif command_type == "SUMMARIZE":
+                    target_team = msg.get("team", "RED")
             except:
-                pass # Fallback if just string "START" sent (legacy)
+                pass 
 
+            # --- HANDLE SUMMARIZE COMMAND ---
+            if command_type == "SUMMARIZE":
+                print(f"Generating Summary for {target_team} Team...")
+                
+                if target_team == "RED":
+                    summary_prompt = f"Summarize the Red Team's last attack sequence. Scan: {last_turn_context['scan_result']}. Options: {last_turn_context['attack_options']}. Decision: {last_turn_context['attack_name']}."
+                    # Re-use Commander for summary
+                    summary = commander_chain.invoke({"options": summary_prompt}).get('visual_desc', 'Summary failed') 
+                    # Note: Using visual_desc field as a hack to get text out of JSON parser, 
+                    # or we could make a dedicated summary chain. Let's make a quick text summary manually for robustnes or use the chain.
+                    # Actually, the commander outputs JSON. Let's use a simple string formatting for speed or a dedicated chain if needed.
+                    # For now, let's format it manually to avoid JSON parsing errors from the prompt reuse.
+                    formatted_summary = f"📢 RED REPORT: Scanned {last_turn_context['scan_result'][:30]}... Considered {last_turn_context['attack_options'][:30]}... Executed {last_turn_context['attack_name']}."
+                    await manager.broadcast({"type": "NEW_MESSAGE", "agent": "RED_COMMANDER", "text": formatted_summary})
+                    
+                else: # BLUE
+                    formatted_summary = f"🛡️ BLUE REPORT: Analyzed {last_turn_context['analysis'][:30]}... Engineering proposed {last_turn_context['defense_options'][:30]}... Deployed {last_turn_context['defense_name']}."
+                    await manager.broadcast({"type": "NEW_MESSAGE", "agent": "BLUE_COMMANDER", "text": formatted_summary})
+                
+                continue # Skip the rest of the loop
+
+            # --- NORMAL GAME LOOP ---
             print(f"Starting Game Loop for Mission: {mission_id}")
             scenario_context = SCENARIOS.get(mission_id, SCENARIOS["NETWORK_FLOOD"])
 
@@ -81,6 +122,7 @@ async def websocket_endpoint(websocket: WebSocket):
             try:
                 # Using the Scenario Context directly to Prime the Scanner
                 scan_result = scanner_chain.invoke({"layer_info": scenario_context})
+                last_turn_context['scan_result'] = scan_result # SAVE CONTEXT
             except Exception as e:
                 scan_result = f"Error: {str(e)} (Check GROQ_API_KEY)"
 
@@ -97,6 +139,7 @@ async def websocket_endpoint(websocket: WebSocket):
             # CALL REAL AI (Pass the scan result to the next agent)
             try:
                 attack_options = weaponizer_chain.invoke({"scan_result": scan_result})
+                last_turn_context['attack_options'] = attack_options # SAVE CONTEXT
             except Exception as e:
                 attack_options = "Error: System Offline"
 
@@ -116,6 +159,7 @@ async def websocket_endpoint(websocket: WebSocket):
                 attack_name = final_move_json.get('attack_name', 'Unknown')
                 damage = final_move_json.get('damage', 0)
                 attack_desc = final_move_json.get('visual_desc', 'Attack failed')
+                last_turn_context['attack_name'] = attack_name # SAVE CONTEXT
             except Exception as e:
                 attack_name = "Abort"
                 damage = 0
@@ -147,6 +191,7 @@ async def websocket_endpoint(websocket: WebSocket):
                 # Watchman analyzes Red's final move
                 print(f"Blue Watchman invoking with: {attack_name}")
                 analysis = watchman_chain.invoke({"attack_info": attack_name})
+                last_turn_context['analysis'] = analysis # SAVE CONTEXT
                 print(f"Blue Watchman Result: {analysis}")
             except Exception as e:
                 print(f"Blue Watchman Error: {e}")
@@ -165,6 +210,7 @@ async def websocket_endpoint(websocket: WebSocket):
             try:
                 print("Blue Engineer invoking...")
                 defense_options = engineer_chain.invoke({"analysis": analysis})
+                last_turn_context['defense_options'] = defense_options # SAVE CONTEXT
                 print(f"Blue Engineer Result: {defense_options}")
             except Exception as e:
                 print(f"Blue Engineer Error: {e}")
@@ -187,6 +233,7 @@ async def websocket_endpoint(websocket: WebSocket):
                 defense_name = defense_json.get('defense_name', 'Shield')
                 mitigation = defense_json.get('mitigation_score', 0)
                 defense_desc = defense_json.get('visual_desc', 'Shield Active')
+                last_turn_context['defense_name'] = defense_name # SAVE CONTEXT
             except Exception as e:
                 print(f"Blue Warden Error: {e}")
                 defense_name = "Emergency Protocol"

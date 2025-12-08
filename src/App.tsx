@@ -25,7 +25,7 @@ const defenseTeam = [
 ];
 
 function App() {
-  const { messages, statuses, health, isHit, mitigationScore, defenseDesc, startGame } = useGameSocket();
+  const { messages, statuses, health, isHit, mitigationScore, defenseDesc, startGame, requestSummary, resetState } = useGameSocket();
   const [roundState, setRoundState] = useState<"MENU" | "INTRO" | "FIGHT">("MENU"); // Changed initial state to MENU
   const [mission, setMission] = useState<string | null>(null);
 
@@ -36,6 +36,12 @@ function App() {
 
   const handleStartGame = () => {
     if (mission) startGame(mission);
+  };
+
+  const handleReturnToMenu = () => {
+    resetState();
+    setRoundState("MENU");
+    setMission(null);
   };
 
   // Helper to render a Hat with its Bubble
@@ -73,6 +79,16 @@ function App() {
         />
       )}
 
+      {/* Return Button */}
+      {roundState === "FIGHT" && (
+        <button
+          onClick={handleReturnToMenu}
+          className="absolute top-4 left-4 z-50 px-4 py-2 bg-gray-800/50 hover:bg-gray-700 text-white text-xs font-mono border border-gray-600 rounded pt-2 transition-all"
+        >
+          ← RETURN TO MENU
+        </button>
+      )}
+
       {/* Arena Title */}
       <h1 className="z-10 text-4xl font-bold text-white mb-2 tracking-widest uppercase opacity-80">
         Cyber Arena {mission ? `// ${mission}` : ""}
@@ -89,7 +105,19 @@ function App() {
 
       <div className="z-10 flex w-full max-w-6xl justify-between px-12 gap-12 items-end">
         {/* Attack Team (Left) */}
-        <div className="flex-1 flex flex-col items-center gap-8 p-8 bg-red-900/10 backdrop-blur-sm rounded-2xl border border-red-500/20">
+        <div className="flex-1 flex flex-col items-center gap-8 p-8 bg-red-900/10 backdrop-blur-sm rounded-2xl border border-red-500/20 relative">
+
+          {/* Summary Button Red */}
+          {roundState === "FIGHT" && (
+            <button
+              onClick={() => requestSummary("RED")}
+              className="absolute -top-4 w-12 h-12 bg-red-600 hover:bg-red-500 rounded flex items-center justify-center border-2 border-red-400 shadow-lg text-white font-bold text-xs z-30 transition-transform hover:scale-110"
+              title="Commander Summary"
+            >
+              📜
+            </button>
+          )}
+
           <h2 className="text-2xl font-bold text-red-500 uppercase tracking-wider">Attack Team</h2>
           <div className="grid grid-cols-2 gap-x-12 gap-y-12">
             {attackTeam.map((agent) => RenderAgent(agent))}
@@ -122,7 +150,19 @@ function App() {
         </div>
 
         {/* Defense Team (Right) */}
-        <div className="flex-1 flex flex-col items-center gap-8 p-8 bg-blue-900/10 backdrop-blur-sm rounded-2xl border border-blue-500/20">
+        <div className="flex-1 flex flex-col items-center gap-8 p-8 bg-blue-900/10 backdrop-blur-sm rounded-2xl border border-blue-500/20 relative">
+
+          {/* Summary Button Blue */}
+          {roundState === "FIGHT" && (
+            <button
+              onClick={() => requestSummary("BLUE")}
+              className="absolute -top-4 w-12 h-12 bg-blue-600 hover:bg-blue-500 rounded flex items-center justify-center border-2 border-blue-400 shadow-lg text-white font-bold text-xs z-30 transition-transform hover:scale-110"
+              title="Commander Summary"
+            >
+              📜
+            </button>
+          )}
+
           <h2 className="text-2xl font-bold text-blue-300 uppercase tracking-wider">Defense Team</h2>
           <div className="grid grid-cols-2 gap-x-12 gap-y-12">
             {defenseTeam.map((agent) => RenderAgent(agent))}
