@@ -11,6 +11,9 @@ export const Announcer = ({ round, layerName, onComplete }: AnnouncerProps) => {
     const [show, setShow] = useState(true);
 
     useEffect(() => {
+        // Reset show state in case round changes
+        setShow(true);
+
         // 1. The Script (UFC Style)
         const text = `ROUND ${round}. ${layerName}. FIGHT!`;
 
@@ -48,7 +51,7 @@ export const Announcer = ({ round, layerName, onComplete }: AnnouncerProps) => {
             window.speechSynthesis.cancel();
             clearTimeout(timer);
         };
-    }, [round]);
+    }, [round, layerName]);
 
     return (
         <AnimatePresence>

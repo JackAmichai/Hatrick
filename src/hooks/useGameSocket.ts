@@ -57,13 +57,15 @@ export const useGameSocket = () => {
             }
             // 2. Red Scanner (Result)
             else if (step === 2) {
-                setMessages(prev => ({ ...prev, RED_SCANNER: "Target Acquired: Simulated Vulnerability found on Layer 7." }));
+                // EXCLUSIVE SPEECH: Only Scanner speaks
+                setMessages({ RED_SCANNER: "Target Acquired: Simulated Vulnerability found on Layer 7." });
                 setStatuses(prev => ({ ...prev, RED_SCANNER: "IDLE", RED_WEAPONIZER: "THINKING" }));
                 mockStepRef.current++;
             }
             // 3. Red Weaponizer (Result)
             else if (step === 3) {
-                setMessages(prev => ({ ...prev, RED_WEAPONIZER: "Compiling Payload: SQL Injection vs Localhost." }));
+                // EXCLUSIVE SPEECH: Only Weaponizer speaks
+                setMessages({ RED_WEAPONIZER: "Compiling Payload: SQL Injection vs Localhost." });
                 setStatuses(prev => ({ ...prev, RED_WEAPONIZER: "IDLE", RED_COMMANDER: "THINKING" }));
                 mockStepRef.current++;
             }
@@ -78,7 +80,7 @@ export const useGameSocket = () => {
             }
             // 5. RED EXECUTE (Resume after approval)
             else if (step === 5) {
-                setMessages(prev => ({ ...prev, RED_COMMANDER: "Authorized: DEPLOY PAYLOAD." }));
+                setMessages({ RED_COMMANDER: "Authorized: DEPLOY PAYLOAD." });
                 setHealth(prev => Math.max(0, prev - 15));
                 setIsHit(true);
                 setTimeout(() => setIsHit(false), 500);
@@ -90,18 +92,24 @@ export const useGameSocket = () => {
 
             // 6. Blue Watchman (Thinking)
             else if (step === 6) {
-                setMessages(prev => ({ ...prev, BLUE_SCANNER: "Anomaly Detected: Unauthorized DB Access signature." }));
+                setMessages(prev => ({ ...prev, BLUE_SCANNER: "Thinking..." })); // Show thinking
+                setStatuses(prev => ({ ...prev, BLUE_SCANNER: "THINKING" }));
+                mockStepRef.current++;
+            }
+            // 7. Blue Watchman result
+            else if (step === 7) {
+                setMessages({ BLUE_SCANNER: "Anomaly Detected: Unauthorized DB Access signature." });
                 setStatuses(prev => ({ ...prev, BLUE_SCANNER: "IDLE", BLUE_WEAPONIZER: "THINKING" }));
                 mockStepRef.current++;
             }
-            // 7. Blue Engineering (Result)
-            else if (step === 7) {
-                setMessages(prev => ({ ...prev, BLUE_WEAPONIZER: "Deploying WAF Ruleset: BLOCK_SQLI." }));
+            // 8. Blue Engineering (Result)
+            else if (step === 8) {
+                setMessages({ BLUE_WEAPONIZER: "Deploying WAF Ruleset: BLOCK_SQLI." });
                 setStatuses(prev => ({ ...prev, BLUE_WEAPONIZER: "IDLE", BLUE_COMMANDER: "THINKING" }));
                 mockStepRef.current++;
             }
-            // 8. BLUE PROPOSAL (PAUSE HERE)
-            else if (step === 8) {
+            // 9. BLUE PROPOSAL (PAUSE HERE)
+            else if (step === 9) {
                 setProposal({
                     team: "BLUE",
                     action: "WAF Update",
@@ -109,9 +117,9 @@ export const useGameSocket = () => {
                 });
                 // DO NOT INCREMENT STEP automatically.
             }
-            // 9. BLUE EXECUTE (Resume after approval)
-            else if (step === 9) {
-                setMessages(prev => ({ ...prev, BLUE_COMMANDER: "System Secure. Mitigation Active." }));
+            // 10. BLUE EXECUTE (Resume after approval)
+            else if (step === 10) {
+                setMessages({ BLUE_COMMANDER: "System Secure. Mitigation Active." });
                 setDefenseDesc("WAF Shield Active 🛡️");
                 setMitigationScore(85);
                 setStatuses(prev => ({ ...prev, BLUE_COMMANDER: "IDLE" }));
@@ -144,7 +152,12 @@ export const useGameSocket = () => {
             const data: GameEvent = JSON.parse(event.data);
 
             if (data.type === "STATE_UPDATE") setStatuses(prev => ({ ...prev, [data.agent]: data.status! }));
-            if (data.type === "NEW_MESSAGE") setMessages(prev => ({ ...prev, [data.agent]: data.text! }));
+
+            // EXCLUSIVE SPEECH: Clear others when someone speaks
+            if (data.type === "NEW_MESSAGE") {
+                setMessages({ [data.agent]: data.text! });
+            }
+
             if (data.type === "IMPACT") {
                 const damage = data.damage_taken!;
                 setHealth(prev => Math.max(0, prev - damage));
@@ -184,9 +197,9 @@ export const useGameSocket = () => {
             // MOCK SUMMARY (Fallback for Vercel/Offline)
             console.log("Generating Mock Summary...");
             if (team === 'RED') {
-                setMessages(prev => ({ ...prev, RED_COMMANDER: "📢 RED REPORT: Scanned Localhost... Found SQLi Vector... Executed Payload." }));
+                setMessages({ RED_COMMANDER: "📢 RED REPORT: Scanned Localhost... Found SQLi Vector... Executed Payload." });
             } else {
-                setMessages(prev => ({ ...prev, BLUE_COMMANDER: "🛡️ BLUE REPORT: Detected Signature... WAF Ruleset Updated... Attack Mitigated." }));
+                setMessages({ BLUE_COMMANDER: "🛡️ BLUE REPORT: Detected Signature... WAF Ruleset Updated... Attack Mitigated." });
             }
         }
     };
@@ -203,7 +216,7 @@ export const useGameSocket = () => {
                 // Force immediate update if you want, but the interval will catch it
             } else {
                 // If rejected in mock mode, maybe just loop back or show a "Rethinking" message
-                setMessages(prev => ({ ...prev, RED_COMMANDER: "⚠️ Plan Rejected. Rethinking..." }));
+                setMessages({ RED_COMMANDER: "⚠️ Plan Rejected. Rethinking..." });
                 setTimeout(() => {
                     mockStepRef.current++; // Just proceed for the sake of the demo, or loop back complexity
                 }, 1000);
