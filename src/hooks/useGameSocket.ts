@@ -4,14 +4,24 @@ import { useState, useEffect, useRef } from 'react';
 type AgentStatus = "IDLE" | "THINKING" | "ACTING";
 
 
+interface Proposal {
+    team: "RED" | "BLUE";
+    action: string;
+    description: string;
+}
+
 interface GameEvent {
-    type: "STATE_UPDATE" | "NEW_MESSAGE" | "IMPACT";
+    type: "STATE_UPDATE" | "NEW_MESSAGE" | "IMPACT" | "PROPOSAL"; // Added PROPOSAL
     agent: string; // e.g., "RED_SCANNER"
     status?: AgentStatus;
     text?: string;
     damage_taken?: number;
     mitigation_score?: number; // Added for MITM logic
     defense_desc?: string; // Added for Stack logic
+    // Proposal fields
+    team?: "RED" | "BLUE";
+    action?: string;
+    description?: string;
 }
 
 export const useGameSocket = () => {
@@ -21,6 +31,7 @@ export const useGameSocket = () => {
     const [isHit, setIsHit] = useState(false);
     const [mitigationScore, setMitigationScore] = useState(0); // Added state
     const [defenseDesc, setDefenseDesc] = useState(""); // Added state
+    const [proposal, setProposal] = useState<Proposal | null>(null); // Added state
     const socketRef = useRef<WebSocket | null>(null);
 
     // MOCK DATA GENERATORS
@@ -101,6 +112,14 @@ export const useGameSocket = () => {
                     setTimeout(() => setIsHit(false), 500);
                 }
             }
+            // Handle Proposal
+            if (data.type === "PROPOSAL") {
+                setProposal({
+                    team: data.team!,
+                    action: data.action!,
+                    description: data.description!
+                });
+            }
         };
 
         return () => ws.close();
@@ -129,6 +148,13 @@ export const useGameSocket = () => {
         }
     };
 
+    const submitDecision = (approved: boolean) => {
+        setProposal(null); // Clear UI immediately
+        if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
+            socketRef.current.send(JSON.stringify({ type: "DECISION", approved }));
+        }
+    };
+
     const resetState = () => {
         setHealth(100);
         setMessages({});
@@ -136,7 +162,8 @@ export const useGameSocket = () => {
         setIsHit(false);
         setMitigationScore(0);
         setDefenseDesc("");
+        setProposal(null);
     };
 
-    return { messages, statuses, health, isHit, mitigationScore, defenseDesc, startGame, requestSummary, resetState };
+    return { messages, statuses, health, isHit, mitigationScore, defenseDesc, proposal, startGame, requestSummary, resetState, submitDecision };
 };

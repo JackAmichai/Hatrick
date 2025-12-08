@@ -113,153 +113,136 @@ async def websocket_endpoint(websocket: WebSocket):
             print(f"Starting Game Loop for Mission: {mission_id}")
             scenario_context = SCENARIOS.get(mission_id, SCENARIOS["NETWORK_FLOOD"])
 
-            # --- START RED TEAM ---
-            
-            # 1. RED SCANNER
-            await manager.broadcast({"type": "STATE_UPDATE", "agent": "RED_SCANNER", "status": "THINKING"})
-            
-            # CALL REAL AI
-            try:
-                # Using the Scenario Context directly to Prime the Scanner
-                scan_result = scanner_chain.invoke({"layer_info": scenario_context})
-                last_turn_context['scan_result'] = scan_result # SAVE CONTEXT
-            except Exception as e:
-                scan_result = f"Error: {str(e)} (Check GROQ_API_KEY)"
+            # --- RED TEAM LOOP ---
+            red_approved = False
+            while not red_approved:
+                # 1. RED SCANNER
+                await manager.broadcast({"type": "STATE_UPDATE", "agent": "RED_SCANNER", "status": "THINKING"})
+                try:
+                    scan_result = scanner_chain.invoke({"layer_info": scenario_context})
+                    last_turn_context['scan_result'] = scan_result
+                except Exception as e:
+                    scan_result = f"Error: {str(e)}"
+                await manager.broadcast({"type": "NEW_MESSAGE", "agent": "RED_SCANNER", "text": scan_result})
+                await manager.broadcast({"type": "STATE_UPDATE", "agent": "RED_SCANNER", "status": "IDLE"})
+                
+                # 2. RED WEAPONIZER
+                await manager.broadcast({"type": "STATE_UPDATE", "agent": "RED_WEAPONIZER", "status": "THINKING"})
+                try:
+                    attack_options = weaponizer_chain.invoke({"scan_result": scan_result})
+                    last_turn_context['attack_options'] = attack_options
+                except Exception as e:
+                    attack_options = "Error: Offline"
+                await manager.broadcast({"type": "NEW_MESSAGE", "agent": "RED_WEAPONIZER", "text": attack_options})
+                await manager.broadcast({"type": "STATE_UPDATE", "agent": "RED_WEAPONIZER", "status": "IDLE"})
 
-            await manager.broadcast({
-                "type": "NEW_MESSAGE", 
-                "agent": "RED_SCANNER", 
-                "text": scan_result
-            })
-            await manager.broadcast({"type": "STATE_UPDATE", "agent": "RED_SCANNER", "status": "IDLE"})
-            
-            # 2. RED WEAPONIZER
-            await manager.broadcast({"type": "STATE_UPDATE", "agent": "RED_WEAPONIZER", "status": "THINKING"})
-            
-            # CALL REAL AI (Pass the scan result to the next agent)
-            try:
-                attack_options = weaponizer_chain.invoke({"scan_result": scan_result})
-                last_turn_context['attack_options'] = attack_options # SAVE CONTEXT
-            except Exception as e:
-                attack_options = "Error: System Offline"
+                # 3. RED COMMANDER (PROPOSAL)
+                await manager.broadcast({"type": "STATE_UPDATE", "agent": "RED_COMMANDER", "status": "THINKING"})
+                try:
+                    final_move_json = commander_chain.invoke({"options": attack_options})
+                    attack_name = final_move_json.get('attack_name', 'Unknown')
+                    damage = final_move_json.get('damage', 0)
+                    attack_desc = final_move_json.get('visual_desc', 'Proposed Attack')
+                    last_turn_context['attack_name'] = attack_name
+                except Exception as e:
+                    attack_name = "Retry"
+                    damage = 0
+                    attack_desc = "Compute Error"
 
-            await manager.broadcast({
-                "type": "NEW_MESSAGE", 
-                "agent": "RED_WEAPONIZER", 
-                "text": attack_options
-            })
-            await manager.broadcast({"type": "STATE_UPDATE", "agent": "RED_WEAPONIZER", "status": "IDLE"})
+                # ASK FOR APPROVAL
+                await manager.broadcast({
+                    "type": "PROPOSAL",
+                    "team": "RED",
+                    "action": attack_name,
+                    "description": f"{attack_desc} (Damage Est: {damage}%)"
+                })
+                
+                # Wait for Decision
+                decision_data = await websocket.receive_text() # {"type": "DECISION", "approved": true/false}
+                try:
+                    decision = json.loads(decision_data)
+                    if decision.get("type") == "DECISION" and decision.get("approved") is True:
+                        red_approved = True
+                        await manager.broadcast({"type": "NEW_MESSAGE", "agent": "RED_COMMANDER", "text": f"Authorized: {attack_name}"})
+                        await manager.broadcast({"type": "ATTACK_LAUNCH", "damage": damage, "desc": attack_desc})
+                    else:
+                        await manager.broadcast({"type": "NEW_MESSAGE", "agent": "RED_COMMANDER", "text": "Authorization Denied. Rethinking Strategy..."})
+                        # Loop continues -> Red Team tries again
+                except:
+                    pass
+                
+                await manager.broadcast({"type": "STATE_UPDATE", "agent": "RED_COMMANDER", "status": "IDLE"})
 
-            # 3. RED COMMANDER
-            await manager.broadcast({"type": "STATE_UPDATE", "agent": "RED_COMMANDER", "status": "THINKING"})
-            
-            # CALL REAL AI (Pass the options to the leader)
-            try:
-                final_move_json = commander_chain.invoke({"options": attack_options})
-                attack_name = final_move_json.get('attack_name', 'Unknown')
-                damage = final_move_json.get('damage', 0)
-                attack_desc = final_move_json.get('visual_desc', 'Attack failed')
-                last_turn_context['attack_name'] = attack_name # SAVE CONTEXT
-            except Exception as e:
-                attack_name = "Abort"
-                damage = 0
-                attack_desc = "Connection Error"
-            
-            # Broadcast the text decision
-            await manager.broadcast({
-                "type": "NEW_MESSAGE", 
-                "agent": "RED_COMMANDER", 
-                "text": f"Authorized: {attack_name}"
-            })
-            
-            # Broadcast the DAMAGE EVENT (Visuals - Attack Launch)
-            await manager.broadcast({
-                "type": "ATTACK_LAUNCH",
-                "damage": damage,
-                "desc": attack_desc
-            })
-            
-            await manager.broadcast({"type": "STATE_UPDATE", "agent": "RED_COMMANDER", "status": "IDLE"})
 
-            # --- START BLUE TEAM ---
+            # --- BLUE TEAM LOOP ---
             print("Starting Blue Team Turn...")
+            blue_approved = False
+            while not blue_approved:
+                # 1. BLUE WATCHMAN
+                await manager.broadcast({"type": "STATE_UPDATE", "agent": "BLUE_SCANNER", "status": "THINKING"})
+                try:
+                    analysis = watchman_chain.invoke({"attack_info": attack_name})
+                    last_turn_context['analysis'] = analysis
+                except Exception as e:
+                    analysis = "Error: Offline"
+                await manager.broadcast({"type": "NEW_MESSAGE", "agent": "BLUE_SCANNER", "text": analysis})
+                await manager.broadcast({"type": "STATE_UPDATE", "agent": "BLUE_SCANNER", "status": "IDLE"})
 
-            # 1. BLUE WATCHMAN
-            await manager.broadcast({"type": "STATE_UPDATE", "agent": "BLUE_SCANNER", "status": "THINKING"})
-            
-            try:
-                # Watchman analyzes Red's final move
-                print(f"Blue Watchman invoking with: {attack_name}")
-                analysis = watchman_chain.invoke({"attack_info": attack_name})
-                last_turn_context['analysis'] = analysis # SAVE CONTEXT
-                print(f"Blue Watchman Result: {analysis}")
-            except Exception as e:
-                print(f"Blue Watchman Error: {e}")
-                analysis = "Error: System Offline"
+                # 2. BLUE ENGINEER
+                await manager.broadcast({"type": "STATE_UPDATE", "agent": "BLUE_WEAPONIZER", "status": "THINKING"})
+                try:
+                    defense_options = engineer_chain.invoke({"analysis": analysis})
+                    last_turn_context['defense_options'] = defense_options
+                except Exception as e:
+                    defense_options = "Default Firewall"
+                await manager.broadcast({"type": "NEW_MESSAGE", "agent": "BLUE_WEAPONIZER", "text": defense_options})
+                await manager.broadcast({"type": "STATE_UPDATE", "agent": "BLUE_WEAPONIZER", "status": "IDLE"})
 
-            await manager.broadcast({
-                "type": "NEW_MESSAGE", 
-                "agent": "BLUE_SCANNER", 
-                "text": analysis
-            })
-            await manager.broadcast({"type": "STATE_UPDATE", "agent": "BLUE_SCANNER", "status": "IDLE"})
+                # 3. BLUE WARDEN (PROPOSAL)
+                await manager.broadcast({"type": "STATE_UPDATE", "agent": "BLUE_COMMANDER", "status": "THINKING"})
+                try:
+                    defense_json = warden_chain.invoke({"options": defense_options})
+                    defense_name = defense_json.get('defense_name', 'Shield')
+                    mitigation = defense_json.get('mitigation_score', 0)
+                    defense_desc = defense_json.get('visual_desc', 'Shield Active')
+                    last_turn_context['defense_name'] = defense_name
+                except Exception as e:
+                    defense_name = "Emergency Protocol"
+                    mitigation = 10
+                    defense_desc = "Basic Shield"
 
-            # 2. BLUE ENGINEER
-            await manager.broadcast({"type": "STATE_UPDATE", "agent": "BLUE_WEAPONIZER", "status": "THINKING"})
-            
-            try:
-                print("Blue Engineer invoking...")
-                defense_options = engineer_chain.invoke({"analysis": analysis})
-                last_turn_context['defense_options'] = defense_options # SAVE CONTEXT
-                print(f"Blue Engineer Result: {defense_options}")
-            except Exception as e:
-                print(f"Blue Engineer Error: {e}")
-                defense_options = "Default Firewall"
+                # ASK FOR APPROVAL
+                await manager.broadcast({
+                    "type": "PROPOSAL",
+                    "team": "BLUE",
+                    "action": defense_name,
+                    "description": f"{defense_desc} (Mitigation Est: {mitigation}%)"
+                })
 
-            await manager.broadcast({
-                "type": "NEW_MESSAGE", 
-                "agent": "BLUE_WEAPONIZER", 
-                "text": defense_options
-            })
-            await manager.broadcast({"type": "STATE_UPDATE", "agent": "BLUE_WEAPONIZER", "status": "IDLE"})
+                # Wait for Decision
+                decision_data = await websocket.receive_text()
+                try:
+                    decision = json.loads(decision_data)
+                    if decision.get("type") == "DECISION" and decision.get("approved") is True:
+                        blue_approved = True
+                        await manager.broadcast({"type": "NEW_MESSAGE", "agent": "BLUE_COMMANDER", "text": f"Deploying: {defense_name}"})
+                        
+                        # EXECUTE IMPACT
+                        final_damage = calculate_impact(damage, mitigation)
+                        await manager.broadcast({
+                            "type": "IMPACT",
+                            "damage_taken": final_damage,
+                            "server_health_reduction": final_damage,
+                            "defense_desc": defense_desc,
+                            "mitigation_score": mitigation 
+                        })
+                    else:
+                        await manager.broadcast({"type": "NEW_MESSAGE", "agent": "BLUE_COMMANDER", "text": "Plan Rejected. Recalculating..."})
+                        # Loop continues -> Blue Team tries again
+                except:
+                    pass
 
-            # 3. BLUE WARDEN (DECISION)
-            await manager.broadcast({"type": "STATE_UPDATE", "agent": "BLUE_COMMANDER", "status": "THINKING"})
-            
-            try:
-                print("Blue Warden invoking...")
-                defense_json = warden_chain.invoke({"options": defense_options})
-                print(f"Blue Warden Result: {defense_json}")
-                defense_name = defense_json.get('defense_name', 'Shield')
-                mitigation = defense_json.get('mitigation_score', 0)
-                defense_desc = defense_json.get('visual_desc', 'Shield Active')
-                last_turn_context['defense_name'] = defense_name # SAVE CONTEXT
-            except Exception as e:
-                print(f"Blue Warden Error: {e}")
-                defense_name = "Emergency Protocol"
-                mitigation = 10
-                defense_desc = "Basic Shield"
-
-            await manager.broadcast({
-                "type": "NEW_MESSAGE", 
-                "agent": "BLUE_COMMANDER", 
-                "text": f"Deploying: {defense_name}"
-            })
-            
-            # --- RESOLUTION PHASE ---
-            
-            final_damage = calculate_impact(damage, mitigation)
-            
-            # Broadcast the IMPACT EVENT
-            await manager.broadcast({
-                "type": "IMPACT",
-                "damage_taken": final_damage,
-                "server_health_reduction": final_damage,
-                "defense_desc": defense_desc,
-                "mitigation_score": mitigation  # Added for MITM animation logic
-            })
-            
-            await manager.broadcast({"type": "STATE_UPDATE", "agent": "BLUE_COMMANDER", "status": "IDLE"})
+                await manager.broadcast({"type": "STATE_UPDATE", "agent": "BLUE_COMMANDER", "status": "IDLE"})
 
     except WebSocketDisconnect:
         manager.disconnect(websocket)

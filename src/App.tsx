@@ -5,6 +5,7 @@ import { Announcer } from "./components/Announcer";
 import { ServerTower } from "./components/ServerTower";
 import { MITMAnimation } from "./components/MITMAnimation";
 import { MemoryStack } from "./components/MemoryStack"; // New Component
+import { ApprovalModal } from "./components/ApprovalModal"; // New Import
 import HatTrickHomepage from "./components/HatTrickHomepage"; // New Homepage
 import { useGameSocket } from "./hooks/useGameSocket";
 
@@ -25,7 +26,7 @@ const defenseTeam = [
 ];
 
 function App() {
-  const { messages, statuses, health, isHit, mitigationScore, defenseDesc, startGame, requestSummary, resetState } = useGameSocket();
+  const { messages, statuses, health, isHit, mitigationScore, defenseDesc, proposal, startGame, requestSummary, resetState, submitDecision } = useGameSocket();
   const [roundState, setRoundState] = useState<"MENU" | "INTRO" | "FIGHT">("MENU"); // Changed initial state to MENU
   const [mission, setMission] = useState<string | null>(null);
 
@@ -70,6 +71,16 @@ function App() {
   return (
     <div className="min-h-screen bg-neutral-950 flex flex-col items-center justify-center overflow-hidden relative">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-neutral-800/20 via-neutral-950 to-neutral-950 pointer-events-none" />
+
+      {/* APPROVAL MODAL */}
+      <ApprovalModal
+        isOpen={!!proposal}
+        team={proposal?.team || "RED"}
+        actionName={proposal?.action || "Unknown Action"}
+        description={proposal?.description || "Awaiting description..."}
+        onApprove={() => submitDecision(true)}
+        onReject={() => submitDecision(false)}
+      />
 
       {/* 3D Mission Homepage */}
       {roundState === "MENU" && (
