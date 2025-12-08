@@ -35,53 +35,96 @@ export const useGameSocket = () => {
     const socketRef = useRef<WebSocket | null>(null);
 
     // MOCK DATA GENERATORS
-    const runMockMode = () => {
-        console.warn("Falling back to MOCK MODE");
-        let step = 0;
-        const mockInterval = setInterval(() => {
-            step++;
+    const mockStepRef = useRef(0);
+    const mockIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-            // 1. Red Scanner
-            if (step === 2) {
+    const runMockMode = () => {
+        console.warn("Falling back to INTERACTIVE MOCK MODE");
+        mockStepRef.current = 0; // Reset step
+
+        // Clear any existing interval
+        if (mockIntervalRef.current) clearInterval(mockIntervalRef.current);
+
+        mockIntervalRef.current = setInterval(() => {
+            const step = mockStepRef.current; // Current step
+
+            // --- RED TEAM TURN ---
+
+            // 1. Red Scanner (Thinking)
+            if (step === 1) {
                 setStatuses(prev => ({ ...prev, RED_SCANNER: "THINKING" }));
+                mockStepRef.current++;
             }
-            if (step === 4) {
+            // 2. Red Scanner (Result)
+            else if (step === 2) {
                 setMessages(prev => ({ ...prev, RED_SCANNER: "Target Acquired: Simulated Vulnerability found on Layer 7." }));
                 setStatuses(prev => ({ ...prev, RED_SCANNER: "IDLE", RED_WEAPONIZER: "THINKING" }));
+                mockStepRef.current++;
             }
-
-            // 2. Red Weaponizer & Commander
-            if (step === 6) {
+            // 3. Red Weaponizer (Result)
+            else if (step === 3) {
                 setMessages(prev => ({ ...prev, RED_WEAPONIZER: "Compiling Payload: SQL Injection vs Localhost." }));
                 setStatuses(prev => ({ ...prev, RED_WEAPONIZER: "IDLE", RED_COMMANDER: "THINKING" }));
+                mockStepRef.current++;
             }
-            if (step === 8) {
+            // 4. RED PROPOSAL (PAUSE HERE)
+            else if (step === 4) {
+                setProposal({
+                    team: "RED",
+                    action: "SQL Injection",
+                    description: "Inject malicious SQL query to bypass authentication. Est. Damage: 15%"
+                });
+                // DO NOT INCREMENT STEP automatically. Wait for submitDecision.
+            }
+            // 5. RED EXECUTE (Resume after approval)
+            else if (step === 5) {
                 setMessages(prev => ({ ...prev, RED_COMMANDER: "Authorized: DEPLOY PAYLOAD." }));
                 setHealth(prev => Math.max(0, prev - 15));
                 setIsHit(true);
                 setTimeout(() => setIsHit(false), 500);
                 setStatuses(prev => ({ ...prev, RED_COMMANDER: "IDLE", BLUE_SCANNER: "THINKING" }));
+                mockStepRef.current++;
             }
 
-            // 3. Blue Team Response
-            if (step === 10) {
+            // --- BLUE TEAM TURN ---
+
+            // 6. Blue Watchman (Thinking)
+            else if (step === 6) {
                 setMessages(prev => ({ ...prev, BLUE_SCANNER: "Anomaly Detected: Unauthorized DB Access signature." }));
                 setStatuses(prev => ({ ...prev, BLUE_SCANNER: "IDLE", BLUE_WEAPONIZER: "THINKING" }));
+                mockStepRef.current++;
             }
-            if (step === 12) {
+            // 7. Blue Engineering (Result)
+            else if (step === 7) {
                 setMessages(prev => ({ ...prev, BLUE_WEAPONIZER: "Deploying WAF Ruleset: BLOCK_SQLI." }));
                 setStatuses(prev => ({ ...prev, BLUE_WEAPONIZER: "IDLE", BLUE_COMMANDER: "THINKING" }));
+                mockStepRef.current++;
             }
-            if (step === 14) {
+            // 8. BLUE PROPOSAL (PAUSE HERE)
+            else if (step === 8) {
+                setProposal({
+                    team: "BLUE",
+                    action: "WAF Update",
+                    description: "Deploy new WAF rules to block SQL Injection patterns. Mitigation: 85%"
+                });
+                // DO NOT INCREMENT STEP automatically.
+            }
+            // 9. BLUE EXECUTE (Resume after approval)
+            else if (step === 9) {
                 setMessages(prev => ({ ...prev, BLUE_COMMANDER: "System Secure. Mitigation Active." }));
                 setDefenseDesc("WAF Shield Active 🛡️");
                 setMitigationScore(85);
                 setStatuses(prev => ({ ...prev, BLUE_COMMANDER: "IDLE" }));
-                clearInterval(mockInterval);
+
+                // End of Loop or Reset
+                clearInterval(mockIntervalRef.current!);
             }
 
-        }, 1500);
-        return () => clearInterval(mockInterval);
+        }, 1500); // 1.5s per step
+
+        return () => {
+            if (mockIntervalRef.current) clearInterval(mockIntervalRef.current);
+        };
     };
 
     useEffect(() => {
@@ -152,6 +195,19 @@ export const useGameSocket = () => {
         setProposal(null); // Clear UI immediately
         if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
             socketRef.current.send(JSON.stringify({ type: "DECISION", approved }));
+        } else {
+            // MOCK MODE HANDLER
+            if (approved) {
+                // Advance the mock step logic from the "PAUSE" state
+                mockStepRef.current++;
+                // Force immediate update if you want, but the interval will catch it
+            } else {
+                // If rejected in mock mode, maybe just loop back or show a "Rethinking" message
+                setMessages(prev => ({ ...prev, RED_COMMANDER: "⚠️ Plan Rejected. Rethinking..." }));
+                setTimeout(() => {
+                    mockStepRef.current++; // Just proceed for the sake of the demo, or loop back complexity
+                }, 1000);
+            }
         }
     };
 

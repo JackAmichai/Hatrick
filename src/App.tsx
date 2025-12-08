@@ -92,7 +92,7 @@ function App() {
       {/* Intro Announcer */}
       {roundState === "INTRO" && (
         <Announcer
-          round={1}
+          round={mission ? MISSION_ORDER.indexOf(mission) + 1 : 1}
           layerName={mission || "INFRASTRUCTURE LAYER"}
           onComplete={() => {
             setRoundState("FIGHT");
