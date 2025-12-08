@@ -1,15 +1,45 @@
 import os
+import random
 from langchain_groq import ChatGroq
 from langchain_huggingface import HuggingFaceEndpoint
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser, JsonOutputParser
-from langchain_community.llms import FakeListLLM
+
+# --- SAFE FALLBACK (NO DEPENDENCIES) ---
+class DummyLLM:
+    """A vanilla Python Mock LLM that requires NO external libraries."""
+    def __init__(self, responses=None):
+        self.responses = responses or ["System OK", "No threats detected"]
+    
+    def invoke(self, input_data):
+        # Simulate LangChain invoke
+        return random.choice(self.responses)
+
+    def __or__(self, other):
+        # Allow pipe chaining (chain = prompt | llm | parser)
+        # We just return self because we want to short-circuit the parser too if possible,
+        # OR we simulate the chain behavior.
+        # Ideally, we return a DummyChain.
+        return DummyChain(self.responses)
+
+class DummyChain:
+    def __init__(self, responses):
+        self.responses = responses
+    
+    def invoke(self, input_data):
+        val = random.choice(self.responses)
+        # If the parser expects JSON, we should try to give mock JSON if needed.
+        # But for safety, we return a string or simple dict.
+        # If the downstream expects specific keys, we might break.
+        # Let's try to be smart.
+        if "options" in str(input_data): # Heuristic for Commander
+            return {"attack_name": "Mock Attack", "damage": 10, "visual_desc": "Simulated Packet Storm"}
+        return val
 
 # --- LLM FACTORY WITH FALLBACK ---
 def get_llm(provider, model_name, temperature=0.7):
     """
-    Factory to get LLM from various providers (OpenAI, HuggingFace, Groq).
-    Falls back to Groq (Llama-3) if keys are missing.
+    Factory to get LLM from various providers.
     """
     try:
         # 1. OPENAI (GPT-4)
@@ -20,126 +50,92 @@ def get_llm(provider, model_name, temperature=0.7):
             print(f"✅ LOADED: OpenAI ({model_name})")
             return ChatOpenAI(temperature=temperature, model_name=model_name)
         
-        # 2. HUGGING FACE (Mistral, Gemma, Phi-3, etc.)
+        # 2. HUGGING FACE
         elif provider == "huggingface":
             if not os.getenv("HUGGINGFACEHUB_API_TOKEN"):
                 raise ValueError("Missing Hugging Face Token")
-            
-            print(f"✅ LOADED: Hugging Face ({model_name})")
-            # Using the Inference API (Free Tier compatible)
-            return HuggingFaceEndpoint(
-                repo_id=model_name, 
-                temperature=temperature,
-                task="text-generation",
-                # max_new_tokens included by default in endpoint class usually, 
-                # but good to be explicit if needed. 
-                # Note: Newer langchain_huggingface handles this well.
-            )
+            return HuggingFaceEndpoint(repo_id=model_name, temperature=temperature, task="text-generation")
         
-        # 3. ANTHROPIC (Claude) - Kept for reference but priority is HF now
+        # 3. ANTHROPIC
         elif provider == "anthropic":
             if not os.getenv("ANTHROPIC_API_KEY"):
                 raise ValueError("Missing Anthropic Key")
             from langchain_anthropic import ChatAnthropic
-            print(f"✅ LOADED: Anthropic ({model_name})")
             return ChatAnthropic(temperature=temperature, model_name=model_name)
 
     except Exception as e:
         print(f"⚠️ FALLBACK: {provider} failed ({str(e)}). Checking replacements...")
     
-    # FALLBACK SEQUENCE: GROQ -> HUGGINGFACE -> FAKE (MOCK)
+    # FALLBACK SEQUENCE
     
-    # 1. Try Groq
-    if os.getenv("GROQ_API_KEY"):
-        fallback_model = "llama-3.3-70b-versatile" if temperature < 0.6 else "llama-3.1-8b-instant"
-        return ChatGroq(temperature=temperature, model_name=fallback_model)
-    
-    # 2. Try Hugging Face (if user has that but not Groq)
-    elif os.getenv("HUGGINGFACEHUB_API_TOKEN"):
-        # Fallback to a small fast model
-        return HuggingFaceEndpoint(
-            repo_id="google/gemma-2b-it", 
-            temperature=temperature,
-            task="text-generation"
-        )
+    # 1. Groq
+    try:
+        if os.getenv("GROQ_API_KEY"):
+            fallback_model = "llama-3.3-70b-versatile" if temperature < 0.6 else "llama-3.1-8b-instant"
+            return ChatGroq(temperature=temperature, model_name=fallback_model)
+    except:
+        pass
 
-    # 3. Last Resort: Fake LLM (Prevents Crash)
-    from langchain_community.llms import FakeListLLM
-    print("⚠️ CRITICAL: No API Keys found for fallback. Using Mock Responses.")
-    return FakeListLLM(responses=["[Mock AI Response]: System Secure.", "Analysis: No Detection."])
+    # 2. Mock (Safe)
+    print("⚠️ CRITICAL: Using Vanilla Mock LLM.")
+    return DummyLLM()
 
 # --- MODEL ROSTER ---
 
-# 1. RED COMMANDER -> OpenAI GPT-4
 red_commander_llm = get_llm("openai", "gpt-4-turbo", temperature=0.6)
-
-# 2. RED WEAPONIZER -> Mistral 7B (Hugging Face)
-# Repo: mistralai/Mistral-7B-Instruct-v0.2
 red_weaponizer_llm = get_llm("huggingface", "mistralai/Mistral-7B-Instruct-v0.2", temperature=0.8)
-
-# 3. RED SCANNER -> Gemma 7B (Hugging Face / Google)
-# Repo: google/gemma-7b-it
 red_scanner_llm = get_llm("huggingface", "google/gemma-7b-it", temperature=0.5)
 
-
-# 4. BLUE COMMANDER -> Phi-3 Mini (Hugging Face / Microsoft)
-# Repo: microsoft/Phi-3-mini-4k-instruct
 blue_commander_llm = get_llm("huggingface", "microsoft/Phi-3-mini-4k-instruct", temperature=0.5)
-
-# 5. BLUE WEAPONIZER -> Falcon 7B or similar? Let's use Llama-3-8B via Hugging Face or fallback to Groq.
-# Let's try to use another HF model for diversity: databricks/dolly-v2-3b (Fast/Free) or similar.
-# Actually, let's stick to reliable ones. usage of meta-llama/Meta-Llama-3-8B-Instruct on HF might need gate access.
-# Let's use `HuggingFaceH4/zephyr-7b-beta` (Very good open model).
 blue_weaponizer_llm = get_llm("huggingface", "HuggingFaceH4/zephyr-7b-beta", temperature=0.7)
-
-# 6. BLUE SCANNER -> Use Groq (Speed) or another HF model. 
-# Let's use Groq Llama-3-8b for the high-speed scanner role (Simulated "Watchman").
 blue_scanner_llm = get_llm("groq", "llama-3.1-8b-instant", temperature=0.5)
-
 
 # --- AGENT CHAINS ---
 
-# RED SCANNER (Gemma)
-scanner_prompt = ChatPromptTemplate.from_messages([
-    ("system", "You are 'Scope', a Red Team Recon Agent. Your style is robotic and precise."),
-    ("human", "Current Target: {layer_info}. Scan for vulnerabilities. Output a 1-sentence technical observation.")
-])
-scanner_chain = scanner_prompt | red_scanner_llm | StrOutputParser()
+# We need to wrap construction in try/except because | operator might fail if LLM is Dummy
+try:
+    scanner_prompt = ChatPromptTemplate.from_messages([
+        ("system", "You are 'Scope'. Output a 1-sentence observation."),
+        ("human", "{layer_info}")
+    ])
+    scanner_chain = scanner_prompt | red_scanner_llm | StrOutputParser()
 
-# RED WEAPONIZER (Mistral)
-weaponizer_prompt = ChatPromptTemplate.from_messages([
-    ("system", "You are 'Zero', a chaotic Red Team Exploit Dev. Use hacker slang."),
-    ("human", "Vulnerability found: {scan_result}. Propose TWO specific attack vectors (e.g. 'DDOS' or 'Injection'). Keep it under 20 words.")
-])
-weaponizer_chain = weaponizer_prompt | red_weaponizer_llm | StrOutputParser()
+    weaponizer_prompt = ChatPromptTemplate.from_messages([
+        ("system", "You are 'Zero'. Propose attack."),
+        ("human", "{scan_result}")
+    ])
+    weaponizer_chain = weaponizer_prompt | red_weaponizer_llm | StrOutputParser()
 
-# RED COMMANDER (GPT-4)
-commander_prompt = ChatPromptTemplate.from_messages([
-    ("system", "You are 'Viper', the Red Team Commander. You are decisive."),
-    ("human", "Options: {options}. Select the best attack. Return ONLY a JSON object: {{ 'attack_name': '...', 'damage': 80, 'visual_desc': '...' }}")
-])
-commander_chain = commander_prompt | red_commander_llm | JsonOutputParser()
+    commander_prompt = ChatPromptTemplate.from_messages([
+        ("system", "You are 'Viper'. Return JSON."),
+        ("human", "{options}")
+    ])
+    commander_chain = commander_prompt | red_commander_llm | JsonOutputParser()
 
+    watchman_prompt = ChatPromptTemplate.from_messages([
+        ("system", "You are 'Sentinel'. Analyze attack."),
+        ("human", "{attack_info}")
+    ])
+    watchman_chain = watchman_prompt | blue_scanner_llm | StrOutputParser()
 
-# BLUE WATCHMAN (Groq Llama-3 - Speed)
-watchman_prompt = ChatPromptTemplate.from_messages([
-    ("system", "You are 'Sentinel', the Blue Team Analyst. You are calm and observant."),
-    ("human", "INCOMING ATTACK: {attack_info}. Analyze the mechanism. Is it Volumetric, Protocol, or Application layer? One sentence.")
-])
-watchman_chain = watchman_prompt | blue_scanner_llm | StrOutputParser()
+    engineer_prompt = ChatPromptTemplate.from_messages([
+        ("system", "You are 'Patch'. Propose defense."),
+        ("human", "{analysis}")
+    ])
+    engineer_chain = engineer_prompt | blue_weaponizer_llm | StrOutputParser()
 
-# BLUE ENGINEER (Zephyr)
-engineer_prompt = ChatPromptTemplate.from_messages([
-    ("system", "You are 'Patch', the Blue Team Engineer. You are quick and technical."),
-    ("human", "Analysis: {analysis}. Propose TWO technical countermeasures (e.g., 'Rate Limiting', 'Blackhole Routing', 'WAF Rule').")
-])
-engineer_chain = engineer_prompt | blue_weaponizer_llm | StrOutputParser()
+    warden_prompt = ChatPromptTemplate.from_messages([
+        ("system", "You are 'Captain'. Return JSON."),
+        ("human", "{options}")
+    ])
+    warden_chain = warden_prompt | blue_commander_llm | JsonOutputParser()
 
-# BLUE WARDEN (Phi-3)
-warden_prompt = ChatPromptTemplate.from_messages([
-    ("system", "You are 'Captain', the Blue Team Commander. You are decisive."),
-    ("human", "Countermeasures: {options}. Select the best one. Return ONLY a JSON object with DOUBLE QUOTES: {{ \"defense_name\": \"...\", \"mitigation_score\": 70, \"visual_desc\": \"Blue hexagonal forcefield\" }}")
-])
-# Note: Phi-3 is good but sometimes structured output is tricky. If fails, fallback to Groq inside the chain logic 
-# (but for now we rely on the implementation).
-warden_chain = warden_prompt | blue_commander_llm | JsonOutputParser()
+except Exception as e:
+    print(f"⚠️ Chain Construction Failed: {e}. Using Dummy Chains.")
+    # Total Fallback if LangChain piping dies
+    scanner_chain = DummyChain(["Scan Complete"])
+    weaponizer_chain = DummyChain(["Attack Vector: SQLi"])
+    commander_chain = DummyChain([{"attack_name": "Mock Strike", "damage": 50, "visual_desc": "Red Laser"}])
+    watchman_chain = DummyChain(["Analysis: Malicious Packet"])
+    engineer_chain = DummyChain(["Defense: Firewall"])
+    warden_chain = DummyChain([{"defense_name": "Mock Shield", "mitigation_score": 50, "visual_desc": "Blue Forcefield"}])

@@ -5,6 +5,11 @@ import json
 
 app = FastAPI()
 
+# Health Check Route (Crucial for Render)
+@app.get("/")
+async def health_check():
+    return {"status": "ok", "service": "Hatrick Backend"}
+
 # IP Whitelist Middleware
 from ipaddress import ip_address, ip_network
 from fastapi import Request, HTTPException, status
@@ -50,7 +55,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-from backend.agents import scanner_chain, weaponizer_chain, commander_chain, watchman_chain, engineer_chain, warden_chain
+# Handle imports safely depending on run context
+try:
+    from backend.agents import scanner_chain, weaponizer_chain, commander_chain, watchman_chain, engineer_chain, warden_chain
+except ImportError:
+    from agents import scanner_chain, weaponizer_chain, commander_chain, watchman_chain, engineer_chain, warden_chain
 
 # --- THE CONNECTION MANAGER ---
 class ConnectionManager:
