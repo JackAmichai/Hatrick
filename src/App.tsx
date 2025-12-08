@@ -10,17 +10,17 @@ import HatTrickHomepage from "./components/HatTrickHomepage"; // New Homepage
 import { useGameSocket } from "./hooks/useGameSocket";
 
 const attackTeam = [
-  { id: "RED_COMMANDER", name: "GPT-4 Turbo", color: "#EF4444" }, // OpenAI
-  { id: "RED_WEAPONIZER", name: "Mistral 7B", color: "#D946EF" }, // Hugging Face
-  { id: "RED_SCANNER", name: "Gemma 7B", color: "#F97316" }, // Hugging Face (Google)
-  { id: "RED_INF", name: "Llama-3 (70B)", color: "#EF4444" }, // Groq
+  { id: "RED_COMMANDER", name: "Llama-3.1 70B", color: "#EF4444" }, // Groq
+  { id: "RED_WEAPONIZER", name: "Llama3 70B", color: "#D946EF" }, // Groq
+  { id: "RED_SCANNER", name: "Llama-3.1 8B", color: "#F97316" }, // Groq
+  { id: "RED_INF", name: "Llama-3 (70B)", color: "#EF4444" }, // Placeholder
   { id: "RED_DATA", name: "Qwen 1.5", color: "#EF4444" }, // Placeholder
 ];
 
 const defenseTeam = [
-  { id: "BLUE_COMMANDER", name: "Phi-3 Mini", color: "#3B82F6" }, // Hugging Face (Microsoft)
-  { id: "BLUE_WEAPONIZER", name: "Zephyr 7B", color: "#14B8A6" }, // Hugging Face
-  { id: "BLUE_SCANNER", name: "Llama-3 (8B)", color: "#22C55E" }, // Groq (Fast)
+  { id: "BLUE_COMMANDER", name: "Llama-3.1 8B", color: "#3B82F6" }, // Groq
+  { id: "BLUE_WEAPONIZER", name: "Mixtral 8x7B", color: "#14B8A6" }, // Groq
+  { id: "BLUE_SCANNER", name: "Gemma2 9B", color: "#22C55E" }, // Groq
   { id: "BLUE_INF", name: "Falcon 7B", color: "#F8FAFC" }, // Placeholder
   { id: "BLUE_DATA", name: "Command R+", color: "#F8FAFC" }, // Placeholder
 ];
