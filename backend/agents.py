@@ -3,6 +3,7 @@ from langchain_groq import ChatGroq
 from langchain_huggingface import HuggingFaceEndpoint
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser, JsonOutputParser
+from langchain_community.llms import FakeListLLM
 
 # --- LLM FACTORY WITH FALLBACK ---
 def get_llm(provider, model_name, temperature=0.7):
@@ -44,11 +45,28 @@ def get_llm(provider, model_name, temperature=0.7):
             return ChatAnthropic(temperature=temperature, model_name=model_name)
 
     except Exception as e:
-        print(f"⚠️ FALLBACK: {provider} failed ({str(e)}). Using Groq (Llama-3).")
+        print(f"⚠️ FALLBACK: {provider} failed ({str(e)}). Checking replacements...")
     
-    # FALLBACK TO GROQ
-    fallback_model = "llama-3.3-70b-versatile" if temperature < 0.6 else "llama-3.1-8b-instant"
-    return ChatGroq(temperature=temperature, model_name=fallback_model)
+    # FALLBACK SEQUENCE: GROQ -> HUGGINGFACE -> FAKE (MOCK)
+    
+    # 1. Try Groq
+    if os.getenv("GROQ_API_KEY"):
+        fallback_model = "llama-3.3-70b-versatile" if temperature < 0.6 else "llama-3.1-8b-instant"
+        return ChatGroq(temperature=temperature, model_name=fallback_model)
+    
+    # 2. Try Hugging Face (if user has that but not Groq)
+    elif os.getenv("HUGGINGFACEHUB_API_TOKEN"):
+        # Fallback to a small fast model
+        return HuggingFaceEndpoint(
+            repo_id="google/gemma-2b-it", 
+            temperature=temperature,
+            task="text-generation"
+        )
+
+    # 3. Last Resort: Fake LLM (Prevents Crash)
+    from langchain_community.llms import FakeListLLM
+    print("⚠️ CRITICAL: No API Keys found for fallback. Using Mock Responses.")
+    return FakeListLLM(responses=["[Mock AI Response]: System Secure.", "Analysis: No Detection."])
 
 # --- MODEL ROSTER ---
 
