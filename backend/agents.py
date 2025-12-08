@@ -141,20 +141,37 @@ def create_chain(llm, system_prompt, json_parser=False):
             role = "red_commander" if "Viper" in system_prompt else "blue_commander"
         return DummyChain(role, json_mode=json_parser)
 
-# Initialize LLMs (may return None)
-red_scanner_llm = get_llm("huggingface", "google/gemma-7b-it", 0.5)
-red_weaponizer_llm = get_llm("huggingface", "mistralai/Mistral-7B-Instruct-v0.2", 0.8)
-red_commander_llm = get_llm("openai", "gpt-4-turbo", 0.6)
+# Initialize LLMs with diverse models via HuggingFace Inference API
+# HuggingFace models - these use the free Inference API (300 req/hour)
+# Groq is used as a reliable backup for faster responses
 
-blue_scanner_llm = get_llm("groq", "llama-3.1-8b-instant", 0.5)
-blue_weaponizer_llm = get_llm("huggingface", "HuggingFaceH4/zephyr-7b-beta", 0.7)
-blue_commander_llm = get_llm("huggingface", "microsoft/Phi-3-mini-4k-instruct", 0.5)
+# RED TEAM - Attack-oriented models
+red_scanner_llm = get_llm("huggingface", "mistralai/Mistral-7B-Instruct-v0.3", 0.5)  # Scanner: Precise, analytical
+red_weaponizer_llm = get_llm("huggingface", "google/gemma-1.1-7b-it", 0.8)  # Weaponizer: Creative attacks
+red_commander_llm = get_llm("groq", "llama-3.1-70b-versatile", 0.6)  # Commander: Strategic decisions
 
-# Create Chains
-scanner_chain = create_chain(red_scanner_llm, "You are 'Scope'. Output a 1-sentence observation.")
-weaponizer_chain = create_chain(red_weaponizer_llm, "You are 'Zero'. Propose attack.")
-commander_chain = create_chain(red_commander_llm, "You are 'Viper'. Return JSON.", json_parser=True)
+# BLUE TEAM - Defense-oriented models  
+blue_scanner_llm = get_llm("huggingface", "meta-llama/Llama-3.2-3B-Instruct", 0.5)  # Watchman: Quick threat detection
+blue_weaponizer_llm = get_llm("huggingface", "HuggingFaceH4/zephyr-7b-beta", 0.7)  # Engineer: Defense proposals
+blue_commander_llm = get_llm("groq", "llama-3.1-8b-instant", 0.5)  # Warden: Fast tactical decisions
 
-watchman_chain = create_chain(blue_scanner_llm, "You are 'Sentinel'. Analyze attack.")
-engineer_chain = create_chain(blue_weaponizer_llm, "You are 'Patch'. Propose defense.")
-warden_chain = create_chain(blue_commander_llm, "You are 'Captain'. Return JSON.", json_parser=True)
+# Create Chains with detailed prompts for realistic simulation
+scanner_chain = create_chain(red_scanner_llm, 
+    "You are 'Scope', a network reconnaissance agent. Analyze the target and report vulnerabilities in 1-2 sentences. Be technical and specific.")
+
+weaponizer_chain = create_chain(red_weaponizer_llm, 
+    "You are 'Zero', an exploit developer. Based on the scan results, propose a specific attack vector in 1-2 sentences. Name real attack techniques.")
+
+commander_chain = create_chain(red_commander_llm, 
+    "You are 'Viper', the Red Team commander. Choose the final attack. Return ONLY valid JSON: {\"attack_name\": \"string\", \"damage\": number 1-100, \"visual_desc\": \"short effect description\"}", 
+    json_parser=True)
+
+watchman_chain = create_chain(blue_scanner_llm, 
+    "You are 'Sentinel', a threat analyst. Analyze the incoming attack and identify its signature in 1-2 sentences. Be specific about the threat type.")
+
+engineer_chain = create_chain(blue_weaponizer_llm, 
+    "You are 'Patch', a security engineer. Propose a specific countermeasure or defense in 1-2 sentences. Name real defense techniques.")
+
+warden_chain = create_chain(blue_commander_llm, 
+    "You are 'Captain', the Blue Team commander. Choose the final defense. Return ONLY valid JSON: {\"defense_name\": \"string\", \"mitigation_score\": number 1-100, \"visual_desc\": \"short effect description\"}", 
+    json_parser=True)
