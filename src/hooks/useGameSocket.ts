@@ -137,7 +137,11 @@ export const useGameSocket = () => {
 
     useEffect(() => {
         // Connect to Backend
-        const ws = new WebSocket("ws://localhost:8000/ws/game");
+        const backendUrl = import.meta.env.VITE_BACKEND_URL
+            ? import.meta.env.VITE_BACKEND_URL.replace(/^http/, 'ws') + "/ws/game"
+            : "ws://localhost:8000/ws/game";
+
+        const ws = new WebSocket(backendUrl);
         socketRef.current = ws;
 
         ws.onopen = () => console.log("Connected to Game Server");
