@@ -264,4 +264,4 @@ This project demonstrates:
 ## 📜 License
 MIT
 
-Built with 💙 by Jack Amichai • AI Engineer @ Deloitte
+Built with 💙 by Jack Amichai • AI Engineer 
