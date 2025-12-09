@@ -48,6 +48,185 @@ async def scan_cloud():
 
 @app.get("/api/supply-chain/risk")
 async def analyze_supply_chain():
+    """Analyze supply chain risk"""
+    return SupplyChainAttack.detect_supply_chain_risk()
+
+@app.get("/api/apt-profiles")
+async def list_apt_profiles():
+    """List available APT threat actor profiles"""
+    return {
+        "profiles": [
+            {
+                "id": "apt29",
+                "name": "APT29 (Cozy Bear)",
+                "description": "Russian state-sponsored group (SVR). Known for SolarWinds supply chain attack.",
+                "sophistication": "Very High",
+                "origin": "Russia",
+                "targets": "Government, Defense, Think Tanks",
+                "notable_campaigns": ["SolarWinds SUNBURST", "Operation Ghost"],
+                "mitre_tactics": 12
+            },
+            {
+                "id": "apt28",
+                "name": "APT28 (Fancy Bear)",
+                "description": "Russian military intelligence (GRU). Known for aggressive credential theft.",
+                "sophistication": "High",
+                "origin": "Russia",
+                "targets": "Military, Political Organizations",
+                "notable_campaigns": ["DNC Hack 2016", "Olympic Destroyer"],
+                "mitre_tactics": 12
+            },
+            {
+                "id": "lazarus",
+                "name": "Lazarus Group",
+                "description": "North Korean state-sponsored group. Financial motivation + espionage.",
+                "sophistication": "Very High",
+                "origin": "North Korea",
+                "targets": "Financial Institutions, Cryptocurrency",
+                "notable_campaigns": ["WannaCry", "Sony Pictures", "3CX Supply Chain"],
+                "mitre_tactics": 12
+            },
+            {
+                "id": "apt38",
+                "name": "APT38",
+                "description": "North Korean financially-motivated subgroup. Specializes in bank heists.",
+                "sophistication": "High",
+                "origin": "North Korea",
+                "targets": "Banks, SWIFT Network",
+                "notable_campaigns": ["Bangladesh Bank Heist", "Cosmos Bank"],
+                "mitre_tactics": 12
+            }
+        ]
+    }
+
+@app.post("/api/apt-profiles/{apt_id}/scenario")
+async def generate_apt_mission(apt_id: str):
+    """Generate a mission scenario based on APT TTP profile"""
+    apt_classes = {
+        "apt29": APT29CozyBear(),
+        "apt28": APT28FancyBear(),
+        "lazarus": LazarusGroup(),
+        "apt38": APT38()
+    }
+    
+    if apt_id.lower() not in apt_classes:
+        return {"error": f"Unknown APT profile: {apt_id}"}
+    
+    apt_profile = apt_classes[apt_id.lower()]
+    scenario = generate_apt_scenario(apt_profile)
+    
+    return scenario
+
+@app.post("/api/apt-profiles/{apt_id}/iocs")
+async def get_apt_iocs(apt_id: str):
+    """Generate Indicators of Compromise for specific APT"""
+    apt_classes = {
+        "apt29": APT29CozyBear(),
+        "apt28": APT28FancyBear(),
+        "lazarus": LazarusGroup(),
+        "apt38": APT38()
+    }
+    
+    if apt_id.lower() not in apt_classes:
+        return {"error": f"Unknown APT profile: {apt_id}"}
+    
+    apt_profile = apt_classes[apt_id.lower()]
+    iocs = generate_iocs_for_apt(apt_profile)
+    
+    return iocs
+
+@app.post("/api/reports/pentest")
+async def generate_pentest_report(request_body: dict):
+    """Generate comprehensive OWASP-format penetration test report"""
+    # Extract parameters from request
+    client_name = request_body.get("client_name", "Example Corp")
+    engagement_type = request_body.get("engagement_type", "Black Box")
+    test_dates = request_body.get("test_dates", "2025-01-01 to 2025-01-15")
+    mission_results = request_body.get("mission_results", [])
+    
+    # Initialize report generator
+    generator = PenTestReportGenerator(
+        client_name=client_name,
+        engagement_type=engagement_type,
+        test_dates=test_dates
+    )
+    
+    # Generate all sections
+    report = {
+        "executive_summary": generator.generate_executive_summary(mission_results),
+        "technical_findings": generator.generate_technical_findings(mission_results),
+        "mitre_attack_mapping": generator.generate_mitre_attack_mapping(mission_results),
+        "owasp_analysis": generator.generate_owasp_top10_analysis(mission_results),
+        "remediation_roadmap": generator.generate_remediation_roadmap(mission_results),
+        "compliance_mapping": generator.generate_compliance_mapping(mission_results),
+        "metadata": {
+            "client": client_name,
+            "type": engagement_type,
+            "dates": test_dates,
+            "generated_at": "2025-01-15T10:00:00Z",
+            "total_findings": len(mission_results)
+        }
+    }
+    
+    return report
+
+@app.post("/api/reports/whitepaper")
+async def generate_whitepaper(request_body: dict):
+    """Generate academic-style technical white paper"""
+    # Extract parameters
+    title = request_body.get("title", "Autonomous Multi-Agent Cybersecurity Testing")
+    authors = request_body.get("authors", ["HatTrick Research Team"])
+    mission_data = request_body.get("mission_data", [])
+    
+    # Initialize report generator
+    generator = PenTestReportGenerator(
+        client_name="Research",
+        engagement_type="Proof of Concept",
+        test_dates="2025"
+    )
+    
+    # Generate white paper
+    white_paper = generator.generate_white_paper(mission_data)
+    white_paper["title"] = title
+    white_paper["authors"] = authors
+    
+    return white_paper
+
+@app.get("/api/reports/templates")
+async def get_report_templates():
+    """Get available report templates and formats"""
+    return {
+        "templates": [
+            {
+                "id": "owasp_pentest",
+                "name": "OWASP Penetration Test Report",
+                "format": "JSON/HTML",
+                "sections": [
+                    "Executive Summary",
+                    "Technical Findings",
+                    "MITRE ATT&CK Mapping",
+                    "OWASP Top 10 Analysis",
+                    "Remediation Roadmap",
+                    "Compliance Mapping"
+                ],
+                "compliance_frameworks": ["PCI-DSS", "GDPR", "HIPAA", "SOC 2"]
+            },
+            {
+                "id": "technical_whitepaper",
+                "name": "Technical White Paper",
+                "format": "JSON/PDF",
+                "sections": [
+                    "Abstract",
+                    "Methodology",
+                    "Results & Analysis",
+                    "Discussion",
+                    "Conclusion",
+                    "References"
+                ],
+                "use_case": "Academic research, conference papers, portfolio"
+            }
+        ]
+    }
     """Analyze supply chain security risks"""
     return SupplyChainAttack.detect_supply_chain_risk()
 
@@ -134,6 +313,11 @@ from backend.advanced_defenses import (
     DataLossPrevention, BehavioralBiometrics, NetworkSegmentation,
     ComplianceMonitoring, PurpleTeam
 )
+from backend.apt_profiles import (
+    APT29CozyBear, APT28FancyBear, LazarusGroup, APT38,
+    generate_apt_scenario, generate_iocs_for_apt
+)
+from backend.report_generator import PenTestReportGenerator
 
 # --- THE CONNECTION MANAGER ---
 class ConnectionManager:

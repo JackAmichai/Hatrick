@@ -60,6 +60,87 @@ Powered by **Groq** (Llama-3, Phi-3), **LangChain**, and **React**.
 - **Supply Chain**: Dependency graph with poisoned packages
 - **API Exploit**: GraphQL query depth attacks
 
+### 🎨 Enterprise Visualization Features (Features 41-50)
+- **3D Network Topology**: Interactive graph with attack path visualization
+  - Real-time rotation and zoom controls
+  - Color-coded nodes by risk level (critical → low)
+  - Attack path rendering (active, potential, blocked)
+  - Node clustering by type (firewall, server, database, router, IoT, cloud)
+  
+- **Heat Map Vulnerability Scanner**: Auto-scanning risk matrix
+  - 5-level heat map (critical, high, medium, low, minimal)
+  - Asset grouping (server, database, network, application, endpoint)
+  - Real-time scan progress with 30-second intervals
+  - Risk distribution analytics
+  
+- **Real-Time Packet Animation**: Network traffic visualization
+  - Canvas-based packet flow animation
+  - Color-coded by threat level (malicious, suspicious, normal)
+  - Live throughput metrics (bps/Kbps/Mbps)
+  - Attack detection alerts
+  
+- **Attack Impact Predictor**: AI-powered damage forecasting
+  - Pre-execution impact analysis with confidence scoring
+  - Timeline predictions (immediate, short-term, long-term)
+  - Risk factor breakdown with severity levels
+  - Mitigation recommendations with effectiveness ratings
+  
+- **Agent Thought Bubbles**: Real-time reasoning streams
+  - Typing animation effect (30ms character delay)
+  - Role-specific thought templates for 6 agent types
+  - Thought categorization (reasoning, observation, decision, question)
+  - Confidence level indicators
+  
+- **Code Diff Viewer**: Security patch visualization
+  - Split view (side-by-side vulnerable vs patched code)
+  - Unified view (git-style diff format)
+  - CVSS scoring and OWASP category mapping
+  - Sample diffs for SQL injection, buffer overflow, XSS
+  
+- **Cost Optimization Dashboard**: LLM API cost tracking
+  - Real-time cost accumulation (5-second intervals)
+  - Groq pricing integration for all 4 models
+  - ROI calculation ($10K value per successful defense)
+  - Efficiency metrics (tokens per dollar)
+  - Model-by-model breakdown with token usage
+
+### 🎭 APT Threat Profiles (Features 51-54)
+- **APT29 (Cozy Bear)**: Russian SVR - SolarWinds SUNBURST supply chain attack
+  - Sophisticated phishing with LDAP/Active Directory recon
+  - PowerShell Empire for C2 and lateral movement
+  - Stealth persistence with WMI event subscriptions
+  
+- **APT28 (Fancy Bear)**: Russian GRU - Aggressive credential theft
+  - Mimikatz LSASS dumping and Pass-the-Hash
+  - XAgent keylogger and screenshot capture
+  - Privilege escalation via Windows exploits
+  
+- **Lazarus Group**: North Korean - WannaCry ransomware
+  - Cryptocurrency theft from exchanges
+  - 3CX supply chain compromise
+  - SWIFT network attacks for bank heists
+  
+- **APT38**: North Korean financial unit - Bank heists
+  - Bangladesh Bank $81M SWIFT hack
+  - Custom backdoors for payment systems
+  - Anti-forensics and log wiping
+
+### 📄 Enterprise Reporting (Features 55-60)
+- **Automated Pen Test Report Generation**: OWASP-format professional reports
+  - Executive summary with business impact analysis
+  - Technical findings with PoC code, CVSS, and CWE references
+  - MITRE ATT&CK framework mapping across 12 attack phases
+  - OWASP Top 10 2021 analysis with category breakdown
+  - Remediation roadmap (3 phases: 30/90/180 days with cost estimates)
+  - Compliance mapping (PCI-DSS v4.0, GDPR, HIPAA, SOC 2)
+  
+- **Technical White Paper Generator**: Academic-style research papers
+  - Abstract and methodology sections
+  - Attack success rate tables and cost analysis
+  - Discussion of advantages and limitations
+  - References to NIST, OWASP, MITRE frameworks
+  - 99.998% cost reduction vs traditional pen tests
+
 ## 🚀 Getting Started
 
 ### Prerequisites
@@ -71,9 +152,9 @@ Powered by **Groq** (Llama-3, Phi-3), **LangChain**, and **React**.
 ```bash
 cd backend
 python3 -m venv venv
-source venv/bin/activate
+source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
-export GROQ_API_KEY="your_api_key_here"
+export GROQ_API_KEY="your_api_key_here"  # On Windows: set GROQ_API_KEY=your_api_key_here
 uvicorn main:app --reload
 ```
 
@@ -86,18 +167,44 @@ npm run dev
 Visit http://localhost:5173
 
 ## 🏗️ Architecture
-- **Frontend**: Vite + React + TypeScript + Framer Motion.
-- **Backend**: FastAPI (WebSockets) + LangChain.
-- **AI**: Groq (LPU Inference Engine) for sub-second agent responses.
+- **Frontend**: Vite + React 18 + TypeScript 5.4 + Framer Motion 11 + Tailwind CSS 3.4
+- **Backend**: FastAPI + WebSockets + LangChain + LangGraph
+- **AI**: Groq (LPU Inference Engine) for sub-second agent responses
+- **Visualization**: HTML5 Canvas API for 3D rendering and real-time animation
+- **Security Frameworks**: MITRE ATT&CK, OWASP Top 10 2021, NIST CSF, PCI-DSS v4.0
 
 ## 🛡️ Missions
-1. **Network Flood**: Defend against DDoS
-2. **Buffer Overflow**: Prevent stack corruption
-3. **Data Heist**: Stop SQL Injection
-4. **Handshake Hijack**: Secure the MITM exchange
-5. **IoT Takeover**: Compromise smart devices
-6. **Cloud Breach**: Exploit cloud misconfigurations
-7. **Supply Chain**: Poison the build pipeline
+1. **Network Flood**: Defend against DDoS with volumetric analysis
+2. **Buffer Overflow**: Prevent stack corruption and shellcode injection
+3. **SQL Injection**: Stop database compromise attempts
+4. **Handshake Hijack (MITM)**: Secure ARP spoofing and SSL stripping
+5. **IoT Takeover**: Compromise smart devices with firmware exploits
+6. **Cloud Breach**: Exploit S3 buckets, IAM misconfigurations, RDS
+7. **Supply Chain**: Poison npm packages and Docker containers
+8. **API Exploit**: GraphQL introspection and BOLA attacks
+9. **Ransomware**: File encryption with ransom negotiation
+10. **Blockchain**: Smart contract reentrancy and oracle manipulation
+11. **Insider Threat**: Privilege escalation and data exfiltration
+12. **Social Engineering**: Phishing campaigns and BEC
+
+## 📊 API Endpoints
+
+### APT Profiles
+- `GET /api/apt-profiles` - List available APT threat actor profiles
+- `POST /api/apt-profiles/{apt_id}/scenario` - Generate mission from APT TTPs
+- `POST /api/apt-profiles/{apt_id}/iocs` - Get Indicators of Compromise
+
+### Report Generation
+- `POST /api/reports/pentest` - Generate OWASP pen test report (JSON/HTML)
+- `POST /api/reports/whitepaper` - Generate technical white paper
+- `GET /api/reports/templates` - List available report templates
+
+### Security Tools
+- `GET /api/threat-intel` - Latest threat intelligence feeds
+- `GET /api/deception/status` - Honeypot and decoy status
+- `GET /api/zero-trust/policies` - Zero Trust architecture policies
+- `GET /api/compliance/{framework}` - Compliance validation (GDPR, HIPAA, PCI-DSS)
+- `GET /api/network/segmentation` - Network zone visualization
 8. **API Exploit**: Break API authorization
 
 ## 🔌 REST API Endpoints
