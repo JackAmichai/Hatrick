@@ -15,17 +15,17 @@ const attackTeam = [
   { id: "RED_COMMANDER", name: "Llama-3.3 70B", color: "#EF4444" },      // Groq - Decision maker
   { id: "RED_WEAPONIZER", name: "Llama-3.3 70B", color: "#D946EF" },     // Groq - Exploit dev
   { id: "RED_SCANNER", name: "Llama-3.1 8B", color: "#F97316" },         // Groq - Fast scanning
-  { id: "RED_INF", name: "Gemma2 9B", color: "#FB923C" },                // Groq - Infrastructure
-  { id: "RED_DATA", name: "Mixtral 8x7B", color: "#FBBF24" },            // Groq - Data analysis
+  { id: "RED_INF", name: "Qwen 2.5 32B", color: "#FB923C" },             // Groq - Infrastructure
+  { id: "RED_DATA", name: "Mistral 7B", color: "#FBBF24" },              // HuggingFace - Data analysis
 ];
 
 // BLUE TEAM - Diverse Groq LLM Models (Defense-oriented)
 const defenseTeam = [
   { id: "BLUE_COMMANDER", name: "Llama-3.1 8B", color: "#3B82F6" },      // Groq - Fast decisions
-  { id: "BLUE_WEAPONIZER", name: "Mixtral 8x7B", color: "#14B8A6" },     // Groq - MoE defense
-  { id: "BLUE_SCANNER", name: "Llama-3.2 3B", color: "#22C55E" },        // Groq - Threat detection
-  { id: "BLUE_INF", name: "Gemma2 9B", color: "#06B6D4" },               // Groq - Infrastructure
-  { id: "BLUE_DATA", name: "Llama-3.2 1B", color: "#8B5CF6" },           // Groq - Data protection
+  { id: "BLUE_WEAPONIZER", name: "Llama-3.3 70B", color: "#14B8A6" },    // Groq - Engineer
+  { id: "BLUE_SCANNER", name: "Llama-3.1 8B", color: "#22C55E" },        // Groq - Threat detection
+  { id: "BLUE_INF", name: "Qwen 2.5 32B", color: "#06B6D4" },            // Groq - Infrastructure
+  { id: "BLUE_DATA", name: "Phi-3 Mini", color: "#8B5CF6" },             // HuggingFace - Data protection
 ];
 
 function App() {
