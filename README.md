@@ -8,12 +8,21 @@ Powered by **Groq** (Llama-3, Phi-3), **LangChain**, and **React**.
 
 ## 🎮 Features
 - **3D Orbital Homepage**: Select your mission from a dynamic 3-layer orbit. (Light/Dark Mode supported).
+- **Real Virtual Environment Simulation**: Each mission creates a realistic target environment with:
+    - Actual IP addresses and open ports
+    - Service versions with known vulnerabilities
+    - Mission-specific security weaknesses (CVEs, misconfigurations)
+- **Live Code Viewer**: Click the `</>` button above each team to see:
+    - **Red Team**: Actual malicious attack code (Python scripts for DDoS, buffer overflow, SQL injection, MITM)
+    - **Blue Team**: Real defensive security code (rate limiting, ASLR, WAF, certificate pinning)
 - **Sequential Adversarial Flow**:
     - **Red Team (Attackers)**: GPT-4, Llama-3, Gemini. They scan, weaponize, and launch attacks.
     - **Blue Team (Defenders)**: Claude-3, Phi-3, Command R+. They analyze, engineer, and patch vulnerabilities.
 - **Visualized Scenarios**:
-    - **Packet Storm**: Layer 3 Volumetric Attack.
-    - **Handshake Hijack (MITM)**: Visualized "Red Hat" interception on the wire.
+    - **Packet Storm**: Layer 3 Volumetric Attack with UDP flooding.
+    - **Buffer Overflow**: Stack corruption with shellcode injection.
+    - **SQL Injection**: Database compromise attempts.
+    - **Handshake Hijack (MITM)**: ARP spoofing and SSL stripping visualization.
 - **Server Tower**: Real-time health integrity monitoring.
 
 ## 🚀 Getting Started
