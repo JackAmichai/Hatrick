@@ -5,11 +5,11 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import NetworkTopology3D from './NetworkTopology3D';
-import HeatMapScanner from './HeatMapScanner';
-import PacketAnimation from './PacketAnimation';
-import AttackImpactPredictor from './AttackImpactPredictor';
-import CostOptimizationDashboard from './CostOptimizationDashboard';
+import { NetworkTopology3D } from './NetworkTopology3D';
+import { HeatMapScanner } from './HeatMapScanner';
+import { PacketAnimation } from './PacketAnimation';
+import { AttackImpactPredictor } from './AttackImpactPredictor';
+import { CostOptimizationDashboard } from './CostOptimizationDashboard';
 import { CodeDiffViewer, SAMPLE_DIFFS } from './CodeDiffViewer';
 
 interface EnterprisePortfolioProps {
@@ -136,13 +136,13 @@ const EnterprisePortfolio: React.FC<EnterprisePortfolioProps> = ({
       case 'heat-map':
         return <HeatMapScanner />;
       case 'packet-flow':
-        return <PacketAnimation attackInProgress={attackInProgress} />;
+        return <PacketAnimation isAttacking={attackInProgress} attackType={currentMission} />;
       case 'impact-predictor':
         return (
           <AttackImpactPredictor
             attackType={currentMission}
             targetSystem="Production Server"
-            onAnalysisComplete={(prediction) => console.log('Impact prediction:', prediction)}
+            onPredictionComplete={(prediction) => console.log('Impact prediction:', prediction)}
           />
         );
       case 'cost-optimization':
@@ -165,7 +165,11 @@ const EnterprisePortfolio: React.FC<EnterprisePortfolioProps> = ({
                 </button>
               ))}
             </div>
-            <CodeDiffViewer diff={SAMPLE_DIFFS[selectedDiff]} />
+            <CodeDiffViewer 
+              diff={SAMPLE_DIFFS[selectedDiff]} 
+              isOpen={true} 
+              onClose={() => {}} 
+            />
           </div>
         );
       default:

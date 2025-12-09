@@ -1,7 +1,7 @@
 // Code Diff Viewer - Show how blue team patches red team exploits
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { FileCode, GitCompare, Shield, X, Check } from 'lucide-react';
+import { GitCompare, Shield, X, Check } from 'lucide-react';
 
 interface CodeDiff {
     fileName: string;

@@ -3,13 +3,6 @@ import { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Brain, Zap, MessageCircle } from 'lucide-react';
 
-interface ThoughtStream {
-    agentId: string;
-    agentName: string;
-    thoughts: Thought[];
-    isThinking: boolean;
-}
-
 interface Thought {
     id: string;
     text: string;

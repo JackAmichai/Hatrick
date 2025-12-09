@@ -24,8 +24,6 @@ interface AgentDebateProps {
 }
 
 export const AgentDebate = ({ isOpen, onClose, team, debate, voteResults }: AgentDebateProps) => {
-    const teamColor = team === "RED" ? "red" : "blue";
-    
     return (
         <AnimatePresence>
             {isOpen && (

@@ -1,7 +1,6 @@
 // 3D Network Topology Visualization with Attack Paths
 import { useEffect, useRef, useState } from 'react';
-import { motion } from 'framer-motion';
-import { ZoomIn, ZoomOut, RotateCw, Maximize2 } from 'lucide-react';
+import { ZoomIn, ZoomOut, RotateCw } from 'lucide-react';
 
 interface NetworkNode {
     id: string;
@@ -28,12 +27,11 @@ interface NetworkTopology3DProps {
     currentAttack?: string;
 }
 
-export const NetworkTopology3D = ({ nodes = [], attackPaths = [], currentAttack }: NetworkTopology3DProps) => {
+export const NetworkTopology3D = ({ nodes = [], attackPaths = [] }: NetworkTopology3DProps) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [rotation, setRotation] = useState({ x: 0, y: 0 });
     const [zoom, setZoom] = useState(1);
     const [isDragging, setIsDragging] = useState(false);
-    const [selectedNode, setSelectedNode] = useState<NetworkNode | null>(null);
     const lastMousePos = useRef({ x: 0, y: 0 });
 
     // Generate sample network topology if none provided
@@ -125,9 +123,9 @@ export const NetworkTopology3D = ({ nodes = [], attackPaths = [], currentAttack 
             const cosY = Math.cos(rotation.y);
             const sinY = Math.sin(rotation.y);
 
-            let x = node.x * zoom;
-            let y = node.y * zoom;
-            let z = node.z * zoom;
+            const x = node.x * zoom;
+            const y = node.y * zoom;
+            const z = node.z * zoom;
 
             // Rotate around Y axis
             const x1 = x * cosY - z * sinY;

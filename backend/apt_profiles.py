@@ -70,7 +70,7 @@ class APTProfile:
         return []
 
 
-class APT29Cozy Bear(APTProfile):
+class APT29CozyBear(APTProfile):
     """
     APT29 (Cozy Bear) - Russian intelligence-affiliated group
     Known for sophisticated phishing campaigns and stealth
