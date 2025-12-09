@@ -68,6 +68,8 @@ function App() {
     </div>
   );
 
+  const formatMissionName = (name: string) => name.replace(/_/g, " ");
+
   return (
     <div className="min-h-screen bg-neutral-950 flex flex-col items-center justify-center overflow-hidden relative">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-neutral-800/20 via-neutral-950 to-neutral-950 pointer-events-none" />
@@ -93,7 +95,7 @@ function App() {
       {roundState === "INTRO" && (
         <Announcer
           round={mission ? MISSION_ORDER.indexOf(mission) + 1 : 1}
-          layerName={mission || "INFRASTRUCTURE LAYER"}
+          layerName={mission ? formatMissionName(mission) : "INFRASTRUCTURE LAYER"}
           onComplete={() => {
             setRoundState("FIGHT");
             handleStartGame(); // Start with specific mission
@@ -113,7 +115,7 @@ function App() {
 
       {/* Arena Title */}
       <h1 className="z-10 text-4xl font-bold text-white mb-2 tracking-widest uppercase opacity-80">
-        Cyber Arena {mission ? `// ${mission}` : ""}
+        Cyber Arena {mission ? `// ${formatMissionName(mission)}` : ""}
       </h1>
 
       {roundState === "FIGHT" && (
