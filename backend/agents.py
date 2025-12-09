@@ -107,54 +107,54 @@ def create_chain(llm, system_prompt, json_parser=False):
 # ========================================
 # LLM INITIALIZATION
 # ========================================
-# DIVERSE MODEL SHOWCASE: Mix of Groq (fast) and HuggingFace (variety)
-# This demonstrates the ability to orchestrate multiple LLM providers
+# DIVERSE MODEL SHOWCASE: All Groq models for reliability
+# Groq offers multiple models with fast inference - all free tier
 
-print("🚀 Initializing LLM Agents with DIVERSE PROVIDERS...")
+print("🚀 Initializing LLM Agents with GROQ DIVERSE MODELS...")
 
 # ============ RED TEAM - Attack-oriented models ============
-# Scanner: Groq Llama 3.1 8B (fast, good at analysis)
+# Scanner: Llama 3.1 8B (fast, good at analysis)
 red_scanner_llm = get_llm("groq", "llama-3.1-8b-instant", 0.5)
 print("   🔴 RED Scanner: Groq llama-3.1-8b-instant")
 
-# Infrastructure: HuggingFace Mistral 7B (good at technical reasoning)
-red_inf_llm = get_llm("huggingface", "mistralai/Mistral-7B-Instruct-v0.3", 0.6)
-print("   🔴 RED Infrastructure: HuggingFace Mistral-7B-Instruct-v0.3")
+# Infrastructure: Gemma2 9B (Google's model, good at technical reasoning)
+red_inf_llm = get_llm("groq", "gemma2-9b-it", 0.6)
+print("   🔴 RED Infrastructure: Groq gemma2-9b-it")
 
-# Data Analyst: HuggingFace Qwen 2.5 (excellent at data analysis)
-red_data_llm = get_llm("huggingface", "Qwen/Qwen2.5-7B-Instruct", 0.6)
-print("   🔴 RED Data: HuggingFace Qwen2.5-7B-Instruct")
+# Data Analyst: Mixtral 8x7B (MoE, excellent at analysis)
+red_data_llm = get_llm("groq", "mixtral-8x7b-32768", 0.6)
+print("   🔴 RED Data: Groq mixtral-8x7b-32768")
 
-# Weaponizer: Groq Llama 3.3 70B (powerful for complex reasoning)
+# Weaponizer: Llama 3.3 70B (powerful for complex reasoning)
 red_weaponizer_llm = get_llm("groq", "llama-3.3-70b-versatile", 0.8)
 print("   🔴 RED Weaponizer: Groq llama-3.3-70b-versatile")
 
-# Commander: Groq Llama 3.3 70B (needs JSON output reliability)
+# Commander: Llama 3.3 70B (needs JSON output reliability)
 red_commander_llm = get_llm("groq", "llama-3.3-70b-versatile", 0.6)
 print("   🔴 RED Commander: Groq llama-3.3-70b-versatile")
 
 # ============ BLUE TEAM - Defense-oriented models ============
-# Scanner: HuggingFace Zephyr 7B (good at threat detection)
-blue_scanner_llm = get_llm("huggingface", "HuggingFaceH4/zephyr-7b-beta", 0.5)
-print("   🔵 BLUE Scanner: HuggingFace zephyr-7b-beta")
+# Scanner: Llama 3.2 3B (lightweight, fast threat detection)
+blue_scanner_llm = get_llm("groq", "llama-3.2-3b-preview", 0.5)
+print("   🔵 BLUE Scanner: Groq llama-3.2-3b-preview")
 
-# Infrastructure: Groq Gemma2 9B (Google's model, great for security)
+# Infrastructure: Gemma2 9B (Google's model, great for security)
 blue_inf_llm = get_llm("groq", "gemma2-9b-it", 0.5)
 print("   🔵 BLUE Infrastructure: Groq gemma2-9b-it")
 
-# Data Protection: HuggingFace Phi-3 (Microsoft, good for compliance)
-blue_data_llm = get_llm("huggingface", "microsoft/Phi-3-mini-4k-instruct", 0.6)
-print("   🔵 BLUE Data: HuggingFace Phi-3-mini-4k-instruct")
+# Data Protection: Llama 3.2 1B (ultra-fast, good for compliance)
+blue_data_llm = get_llm("groq", "llama-3.2-1b-preview", 0.6)
+print("   🔵 BLUE Data: Groq llama-3.2-1b-preview")
 
-# Engineer: Groq Mixtral 8x7B (mixture of experts, strong defense)
+# Engineer: Mixtral 8x7B (mixture of experts, strong defense)
 blue_weaponizer_llm = get_llm("groq", "mixtral-8x7b-32768", 0.7)
 print("   🔵 BLUE Engineer: Groq mixtral-8x7b-32768")
 
-# Commander: Groq Llama 3.1 8B (fast JSON responses)
+# Commander: Llama 3.1 8B (fast JSON responses)
 blue_commander_llm = get_llm("groq", "llama-3.1-8b-instant", 0.5)
 print("   🔵 BLUE Commander: Groq llama-3.1-8b-instant")
 
-print("✅ All LLM Agents Initialized with DIVERSE PROVIDERS!")
+print("✅ All LLM Agents Initialized with GROQ DIVERSE MODELS!")
 
 # ========================================
 # AGENT CHAINS
