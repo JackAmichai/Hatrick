@@ -11,7 +11,7 @@ interface Proposal {
 }
 
 interface GameEvent {
-    type: "STATE_UPDATE" | "NEW_MESSAGE" | "IMPACT" | "PROPOSAL"; // Added PROPOSAL
+    type: "STATE_UPDATE" | "NEW_MESSAGE" | "IMPACT" | "PROPOSAL" | "CODE_RESPONSE"; // Added CODE_RESPONSE
     agent: string; // e.g., "RED_SCANNER"
     status?: AgentStatus;
     text?: string;
@@ -22,6 +22,10 @@ interface GameEvent {
     team?: "RED" | "BLUE";
     action?: string;
     description?: string;
+    // Code fields
+    code?: string;
+    title?: string;
+    environment?: any;
 }
 
 export const useGameSocket = () => {
@@ -32,6 +36,7 @@ export const useGameSocket = () => {
     const [mitigationScore, setMitigationScore] = useState(0); // Added state
     const [defenseDesc, setDefenseDesc] = useState(""); // Added state
     const [proposal, setProposal] = useState<Proposal | null>(null); // Added state
+    const [codeData, setCodeData] = useState<{ team: "RED" | "BLUE"; code: string; title: string; description: string } | null>(null);
     const socketRef = useRef<WebSocket | null>(null);
 
     // MOCK DATA GENERATORS
@@ -207,6 +212,16 @@ export const useGameSocket = () => {
                     description: data.description!
                 });
             }
+            
+            // Handle Code Response
+            if (data.type === "CODE_RESPONSE") {
+                setCodeData({
+                    team: data.team!,
+                    code: data.code!,
+                    title: data.title!,
+                    description: data.description!
+                });
+            }
         };
 
         return () => ws.close();
@@ -232,6 +247,24 @@ export const useGameSocket = () => {
             } else {
                 setMessages({ BLUE_COMMANDER: "🛡️ BLUE REPORT: Detected Signature... WAF Ruleset Updated... Attack Mitigated." });
             }
+        }
+    };
+
+    const requestCode = (team: "RED" | "BLUE") => {
+        if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
+            socketRef.current.send(JSON.stringify({ type: "GET_CODE", team }));
+        } else {
+            // MOCK CODE (Fallback for offline mode)
+            const mockCode = team === "RED" 
+                ? `# Mock Attack Code\nimport socket\n\nTARGET = "localhost"\nPORT = 8080\n\nprint("Simulating attack...")`
+                : `# Mock Defense Code\nimport firewall\n\nfirewall.enable()\nprint("Defense active")`;
+            
+            setCodeData({
+                team,
+                code: mockCode,
+                title: `${team} Team Script`,
+                description: "Mock code (backend offline)"
+            });
         }
     };
 
@@ -263,7 +296,8 @@ export const useGameSocket = () => {
         setMitigationScore(0);
         setDefenseDesc("");
         setProposal(null);
+        setCodeData(null);
     };
 
-    return { messages, statuses, health, isHit, mitigationScore, defenseDesc, proposal, startGame, requestSummary, resetState, submitDecision };
+    return { messages, statuses, health, isHit, mitigationScore, defenseDesc, proposal, codeData, startGame, requestSummary, requestCode, resetState, submitDecision, setCodeData };
 };

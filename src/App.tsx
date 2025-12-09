@@ -6,6 +6,7 @@ import { ServerTower } from "./components/ServerTower";
 import { MITMAnimation } from "./components/MITMAnimation";
 import { MemoryStack } from "./components/MemoryStack"; // New Component
 import { ApprovalModal } from "./components/ApprovalModal"; // New Import
+import { CodeViewer } from "./components/CodeViewer"; // Code Viewer
 import HatTrickHomepage from "./components/HatTrickHomepage"; // New Homepage
 import { useGameSocket } from "./hooks/useGameSocket";
 
@@ -26,7 +27,7 @@ const defenseTeam = [
 ];
 
 function App() {
-  const { messages, statuses, health, isHit, mitigationScore, defenseDesc, proposal, startGame, requestSummary, resetState, submitDecision } = useGameSocket();
+  const { messages, statuses, health, isHit, mitigationScore, defenseDesc, proposal, codeData, startGame, requestSummary, requestCode, resetState, submitDecision, setCodeData } = useGameSocket();
   const [roundState, setRoundState] = useState<"MENU" | "INTRO" | "FIGHT">("MENU"); // Changed initial state to MENU
   const [mission, setMission] = useState<string | null>(null);
 
@@ -82,6 +83,16 @@ function App() {
         onReject={() => submitDecision(false)}
       />
 
+      {/* CODE VIEWER MODAL */}
+      <CodeViewer
+        isOpen={!!codeData}
+        onClose={() => setCodeData(null)}
+        team={codeData?.team || "RED"}
+        code={codeData?.code || ""}
+        title={codeData?.title || ""}
+        description={codeData?.description || ""}
+      />
+
       {/* 3D Mission Homepage */}
       {roundState === "MENU" && (
         <div className="absolute inset-0 z-50">
@@ -129,15 +140,24 @@ function App() {
         {/* Attack Team (Left) */}
         <div className="flex-1 flex flex-col items-center gap-8 p-8 bg-red-900/10 backdrop-blur-sm rounded-2xl border border-red-500/20 relative">
 
-          {/* Summary Button Red */}
+          {/* Action Buttons Red */}
           {roundState === "FIGHT" && (
-            <button
-              onClick={() => requestSummary("RED")}
-              className="absolute -top-4 w-12 h-12 bg-red-600 hover:bg-red-500 rounded flex items-center justify-center border-2 border-red-400 shadow-lg text-white font-bold text-xs z-30 transition-transform hover:scale-110"
-              title="Commander Summary"
-            >
-              📜
-            </button>
+            <div className="absolute -top-4 flex gap-2 z-30">
+              <button
+                onClick={() => requestSummary("RED")}
+                className="w-12 h-12 bg-red-600 hover:bg-red-500 rounded flex items-center justify-center border-2 border-red-400 shadow-lg text-white font-bold text-xs transition-transform hover:scale-110"
+                title="Commander Summary"
+              >
+                📜
+              </button>
+              <button
+                onClick={() => requestCode("RED")}
+                className="w-12 h-12 bg-red-700 hover:bg-red-600 rounded flex items-center justify-center border-2 border-red-400 shadow-lg text-white font-bold text-xs transition-transform hover:scale-110"
+                title="View Attack Code"
+              >
+                &lt;/&gt;
+              </button>
+            </div>
           )}
 
           <h2 className="text-2xl font-bold text-red-500 uppercase tracking-wider">Attack Team</h2>
@@ -174,15 +194,24 @@ function App() {
         {/* Defense Team (Right) */}
         <div className="flex-1 flex flex-col items-center gap-8 p-8 bg-blue-900/10 backdrop-blur-sm rounded-2xl border border-blue-500/20 relative">
 
-          {/* Summary Button Blue */}
+          {/* Action Buttons Blue */}
           {roundState === "FIGHT" && (
-            <button
-              onClick={() => requestSummary("BLUE")}
-              className="absolute -top-4 w-12 h-12 bg-blue-600 hover:bg-blue-500 rounded flex items-center justify-center border-2 border-blue-400 shadow-lg text-white font-bold text-xs z-30 transition-transform hover:scale-110"
-              title="Commander Summary"
-            >
-              📜
-            </button>
+            <div className="absolute -top-4 flex gap-2 z-30">
+              <button
+                onClick={() => requestSummary("BLUE")}
+                className="w-12 h-12 bg-blue-600 hover:bg-blue-500 rounded flex items-center justify-center border-2 border-blue-400 shadow-lg text-white font-bold text-xs transition-transform hover:scale-110"
+                title="Commander Summary"
+              >
+                📜
+              </button>
+              <button
+                onClick={() => requestCode("BLUE")}
+                className="w-12 h-12 bg-blue-700 hover:bg-blue-600 rounded flex items-center justify-center border-2 border-blue-400 shadow-lg text-white font-bold text-xs transition-transform hover:scale-110"
+                title="View Defense Code"
+              >
+                &lt;/&gt;
+              </button>
+            </div>
           )}
 
           <h2 className="text-2xl font-bold text-blue-300 uppercase tracking-wider">Defense Team</h2>

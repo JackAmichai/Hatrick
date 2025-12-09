@@ -57,6 +57,7 @@ from backend.agents import (
     watchman_chain, engineer_chain, warden_chain,
     red_inf_chain, red_data_chain, blue_inf_chain, blue_data_chain
 )
+from backend.venv_simulator import VirtualEnvironment, CodeGenerator
 
 # --- THE CONNECTION MANAGER ---
 class ConnectionManager:
@@ -128,6 +129,31 @@ async def receive_game_command(websocket: WebSocket, expected_type: str, last_tu
                     formatted_summary = f"🛡️ BLUE REPORT: Analyzed {last_turn_context.get('analysis', 'N/A')[:30]}... Engineering proposed {last_turn_context.get('defense_options', 'N/A')[:30]}... Deployed {last_turn_context.get('defense_name', 'N/A')}."
                     await manager.broadcast({"type": "NEW_MESSAGE", "agent": "BLUE_COMMANDER", "text": formatted_summary})
                 continue # Loop back and wait for the expected command
+            
+            if command_type == "GET_CODE":
+                target_team = msg.get("team", "RED")
+                print(f"Sending code for {target_team} Team...")
+                
+                if target_team == "RED":
+                    code = last_turn_context.get('attack_code', '# No attack code available')
+                    title = f"{last_turn_context.get('attack_name', 'Attack')} Implementation"
+                    description = "Malicious code generated for current attack vector"
+                else:
+                    code = last_turn_context.get('defense_code', '# No defense code available')
+                    title = f"{last_turn_context.get('defense_name', 'Defense')} Implementation"
+                    description = "Security code generated for defense strategy"
+                
+                env_info = last_turn_context.get('environment', {})
+                
+                await websocket.send_text(json.dumps({
+                    "type": "CODE_RESPONSE",
+                    "team": target_team,
+                    "code": code,
+                    "title": title,
+                    "description": description,
+                    "environment": env_info
+                }))
+                continue # Loop back and wait for the expected command
 
             if command_type == expected_type:
                 return msg
@@ -162,11 +188,25 @@ async def websocket_endpoint(websocket: WebSocket):
                 msg = await receive_game_command(websocket, "START", last_turn_context)
                 mission_id = msg.get("mission", "NETWORK_FLOOD")
 
+                # --- INITIALIZE VIRTUAL ENVIRONMENT ---
+                print(f"Creating virtual environment for mission: {mission_id}")
+                venv = VirtualEnvironment(mission_id)
+                env_report = venv.get_environment_report()
+                
+                # Generate attack and defense code
+                attack_code = CodeGenerator.generate_attack_code(mission_id, venv)
+                defense_code = CodeGenerator.generate_defense_code(mission_id, venv)
+                
+                # Store code for later retrieval
+                last_turn_context['attack_code'] = attack_code
+                last_turn_context['defense_code'] = defense_code
+                last_turn_context['environment'] = env_report
+
                 # --- NORMAL GAME LOOP ---
                 print(f"Starting Game Loop for Mission: {mission_id}")
                 base_scenario = SCENARIOS.get(mission_id, SCENARIOS["NETWORK_FLOOD"])
                 
-                # Add Entropy
+                # Add Entropy and Environment Details
                 import random
                 entropy_factors = [
                     "High Network Latency Detected", "Encrypted Traffic Spikes",
@@ -174,7 +214,13 @@ async def websocket_endpoint(websocket: WebSocket):
                     "Internal User Flagged", "External IP Rotation"
                 ]
                 current_entropy = random.choice(entropy_factors)
-                scenario_context = f"{base_scenario} (Condition: {current_entropy})"
+                
+                # Enhanced scenario with real environment data
+                scenario_context = f"""{base_scenario} (Condition: {current_entropy})
+Target IP: {env_report['target_ip']}
+Open Ports: {', '.join([f"{port}/{service}" for port, service in env_report['open_ports'].items()])}
+Vulnerabilities: {len(env_report['vulnerabilities'])} detected
+Network: Firewall {env_report['network_info']['firewall']}, IDS/IPS {env_report['network_info']['ids_ips']}"""
 
                 # --- RED TEAM LOOP ---
                 red_approved = False
