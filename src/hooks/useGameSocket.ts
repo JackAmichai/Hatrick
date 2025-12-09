@@ -44,11 +44,15 @@ export const useGameSocket = () => {
     const mockIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
     const runMockMode = () => {
-        console.warn("Falling back to INTERACTIVE MOCK MODE");
+        console.warn("🎭 Falling back to INTERACTIVE MOCK MODE");
+        console.log("🔄 Resetting mock state and starting simulation...");
         mockStepRef.current = 1; // RESET TO 1 TO START IMMEDIATELY
 
         // Clear any existing interval
-        if (mockIntervalRef.current) clearInterval(mockIntervalRef.current);
+        if (mockIntervalRef.current) {
+            console.log("🧹 Clearing existing mock interval");
+            clearInterval(mockIntervalRef.current);
+        }
 
         // RANDOMIZE MOCK SCRIPTS
         const variants = [
@@ -81,11 +85,13 @@ export const useGameSocket = () => {
 
         mockIntervalRef.current = setInterval(() => {
             const step = mockStepRef.current; // Current step
+            console.log(`🎬 Mock Mode Step ${step}`);
 
             // --- RED TEAM TURN ---
 
             // 1. Red Scanner (Thinking)
             if (step === 1) {
+                console.log("🔴 RED_SCANNER: THINKING");
                 setStatuses(prev => ({ ...prev, RED_SCANNER: "THINKING" }));
                 mockStepRef.current++;
             }
@@ -176,12 +182,27 @@ export const useGameSocket = () => {
         const ws = new WebSocket(backendUrl);
         socketRef.current = ws;
 
-        ws.onopen = () => console.log("Connected to Game Server");
+        // Add timeout to detect if backend is not responding
+        const connectionTimeout = setTimeout(() => {
+            if (ws.readyState !== WebSocket.OPEN) {
+                console.warn("⚠️ Backend connection timeout. Mock mode will be available.");
+                ws.close();
+            }
+        }, 3000); // 3 second timeout
+
+        ws.onopen = () => {
+            console.log("✅ Connected to Game Server");
+            clearTimeout(connectionTimeout);
+        };
+        
         ws.onerror = () => {
-            console.error("Game Connector Failed. Activating Simulation.");
-            // Auto-start mock mode if backend is missing (e.g. Vercel)
-            // We only start mock logic if startGame is called later, 
-            // but here we just flag it or handle it in startGame.
+            console.error("❌ Game Connector Failed. Mock mode will be used on game start.");
+            clearTimeout(connectionTimeout);
+        };
+        
+        ws.onclose = () => {
+            console.warn("🔌 WebSocket closed. Mock mode will be used if game starts.");
+            clearTimeout(connectionTimeout);
         };
 
         ws.onmessage = (event) => {
@@ -229,9 +250,10 @@ export const useGameSocket = () => {
 
     const startGame = (missionId: string) => {
         if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
+            console.log(`🎮 Starting game with mission: ${missionId} (Backend mode)`);
             socketRef.current.send(JSON.stringify({ type: "START", mission: missionId }));
         } else {
-            console.warn("Socket not ready. Running Simulation.");
+            console.warn(`🎮 Starting game with mission: ${missionId} (Mock mode - backend unavailable)`);
             runMockMode();
         }
     };
