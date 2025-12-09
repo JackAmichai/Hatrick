@@ -55,9 +55,10 @@ app.add_middleware(
 from backend.agents import (
     scanner_chain, weaponizer_chain, commander_chain,
     watchman_chain, engineer_chain, warden_chain,
-    red_inf_chain, red_data_chain, blue_inf_chain, blue_data_chain
+    red_inf_chain, red_data_chain, blue_inf_chain, blue_data_chain,
+    red_code_chain, blue_code_chain
 )
-from backend.venv_simulator import VirtualEnvironment, CodeGenerator
+from backend.venv_simulator import VirtualEnvironment
 
 # --- THE CONNECTION MANAGER ---
 class ConnectionManager:
@@ -132,18 +133,67 @@ async def receive_game_command(websocket: WebSocket, expected_type: str, last_tu
             
             if command_type == "GET_CODE":
                 target_team = msg.get("team", "RED")
-                print(f"Sending code for {target_team} Team...")
-                
-                if target_team == "RED":
-                    code = last_turn_context.get('attack_code', '# No attack code available')
-                    title = f"{last_turn_context.get('attack_name', 'Attack')} Implementation"
-                    description = "Malicious code generated for current attack vector"
-                else:
-                    code = last_turn_context.get('defense_code', '# No defense code available')
-                    title = f"{last_turn_context.get('defense_name', 'Defense')} Implementation"
-                    description = "Security code generated for defense strategy"
+                print(f"🔧 Generating code for {target_team} Team using LLM...")
                 
                 env_info = last_turn_context.get('environment', {})
+                mission_id = last_turn_context.get('mission_id', 'UNKNOWN')
+                
+                if target_team == "RED":
+                    # Build context for attack code generation
+                    attack_name = last_turn_context.get('attack_name', 'Generic Attack')
+                    scan_result = last_turn_context.get('scan_result', 'No scan data')
+                    attack_options = last_turn_context.get('attack_options', 'No attack options')
+                    
+                    code_prompt = f"""Mission: {mission_id}
+Target IP: {env_info.get('target_ip', 'Unknown')}
+Open Ports: {env_info.get('open_ports', {})}
+Services: {env_info.get('services', {})}
+Vulnerabilities: {env_info.get('vulnerabilities', [])}
+
+Scan Results: {scan_result}
+Attack Vector: {attack_options}
+Chosen Attack: {attack_name}
+
+Generate a complete Python attack script that exploits these vulnerabilities."""
+
+                    try:
+                        code = red_code_chain.invoke({"input": code_prompt})
+                    except Exception as e:
+                        print(f"Error generating attack code: {e}")
+                        code = f"# Error generating code: {str(e)}\n# Fallback to manual implementation required"
+                    
+                    title = f"{attack_name} - Attack Implementation"
+                    description = f"LLM-generated exploit code targeting {env_info.get('target_ip', 'target system')}"
+                
+                else:  # BLUE TEAM
+                    # Build context for defense code generation
+                    defense_name = last_turn_context.get('defense_name', 'Generic Defense')
+                    analysis = last_turn_context.get('analysis', 'No analysis')
+                    defense_options = last_turn_context.get('defense_options', 'No defense options')
+                    attack_name = last_turn_context.get('attack_name', 'Unknown Attack')
+                    
+                    code_prompt = f"""Mission: {mission_id}
+Protected System IP: {env_info.get('target_ip', 'Unknown')}
+Services to Protect: {env_info.get('services', {})}
+Detected Vulnerabilities: {env_info.get('vulnerabilities', [])}
+
+Threat Analysis: {analysis}
+Attack Being Defended: {attack_name}
+Defense Strategy: {defense_options}
+Chosen Defense: {defense_name}
+
+Generate a complete Python defense script that protects against this attack."""
+
+                    try:
+                        code = blue_code_chain.invoke({"input": code_prompt})
+                    except Exception as e:
+                        print(f"Error generating defense code: {e}")
+                        code = f"# Error generating code: {str(e)}\n# Fallback to manual implementation required"
+                    
+                    title = f"{defense_name} - Defense Implementation"
+                    description = f"LLM-generated security code protecting {env_info.get('target_ip', 'the system')}"
+                
+                print(f"✅ Code generated successfully for {target_team} Team")
                 
                 await websocket.send_text(json.dumps({
                     "type": "CODE_RESPONSE",
@@ -193,14 +243,9 @@ async def websocket_endpoint(websocket: WebSocket):
                 venv = VirtualEnvironment(mission_id)
                 env_report = venv.get_environment_report()
                 
-                # Generate attack and defense code
-                attack_code = CodeGenerator.generate_attack_code(mission_id, venv)
-                defense_code = CodeGenerator.generate_defense_code(mission_id, venv)
-                
-                # Store code for later retrieval
-                last_turn_context['attack_code'] = attack_code
-                last_turn_context['defense_code'] = defense_code
+                # Store environment for later code generation
                 last_turn_context['environment'] = env_report
+                last_turn_context['mission_id'] = mission_id
 
                 # --- NORMAL GAME LOOP ---
                 print(f"Starting Game Loop for Mission: {mission_id}")

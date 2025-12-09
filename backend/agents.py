@@ -216,4 +216,55 @@ The mitigation_score value should be between 1-100. Do not include any other tex
     json_parser=True
 )
 
+# --- CODE GENERATION CHAINS ---
+
+red_coder_llm = get_llm("groq", "llama-3.1-70b-versatile", 0.9)  # High creativity for unique code
+blue_coder_llm = get_llm("groq", "llama-3.1-70b-versatile", 0.9)
+
+red_code_chain = create_chain(
+    red_coder_llm,
+    """You are an elite offensive security researcher writing actual attack code.
+
+Based on the mission context, vulnerability details, and chosen attack vector, generate a complete, functional Python script that implements the attack.
+
+Requirements:
+- Write REAL, executable Python code (not pseudo-code)
+- Include proper imports, error handling, and comments
+- Use actual IP addresses, ports, and vulnerabilities from the environment
+- Make it educational and technically accurate
+- Include clear variable names and documentation
+- The code should be 50-150 lines
+
+Attack types to consider:
+- DDoS/UDP Flood: Use socket library, threading, random payloads
+- Buffer Overflow: Craft shellcode, ROP chains, overflow payloads
+- SQL Injection: Generate injection payloads, test multiple vectors
+- MITM: ARP spoofing, SSL stripping, packet interception
+
+Output ONLY the Python code with comments. No explanations before or after."""
+)
+
+blue_code_chain = create_chain(
+    blue_coder_llm,
+    """You are an elite defensive security engineer writing actual protection code.
+
+Based on the attack analysis and chosen defense strategy, generate a complete, functional Python script that implements the defense.
+
+Requirements:
+- Write REAL, executable Python code (not pseudo-code)
+- Include proper imports, error handling, and comments
+- Use actual security best practices and libraries
+- Make it educational and technically accurate
+- Include clear variable names and documentation
+- The code should be 50-150 lines
+
+Defense types to consider:
+- DDoS Protection: Rate limiting, IP blocking, traffic analysis
+- Memory Protection: ASLR, stack canaries, DEP, input validation
+- SQL Injection Protection: Parameterized queries, WAF rules, input sanitization
+- MITM Protection: Certificate pinning, HSTS, ARP spoofing detection
+
+Output ONLY the Python code with comments. No explanations before or after."""
+)
+
 print("✅ All Agent Chains Created Successfully!")
