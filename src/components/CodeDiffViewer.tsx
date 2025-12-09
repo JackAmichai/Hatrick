@@ -3,7 +3,10 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { GitCompare, Shield, X, Check } from 'lucide-react';
 
-interface CodeDiff {
+// Note: Import SAMPLE_DIFFS from './codeDiffData' where needed
+// This component only exports the CodeDiffViewer component for Fast Refresh compatibility
+
+interface CodeDiffLocal {
     fileName: string;
     language: string;
     before: string;
@@ -14,7 +17,7 @@ interface CodeDiff {
 }
 
 interface CodeDiffViewerProps {
-    diff: CodeDiff;
+    diff: CodeDiffLocal;
     isOpen: boolean;
     onClose: () => void;
 }
@@ -268,64 +271,4 @@ export const CodeDiffViewer = ({ diff, isOpen, onClose }: CodeDiffViewerProps) =
             </motion.div>
         </motion.div>
     );
-};
-
-// Sample diff data for demonstration
-export const SAMPLE_DIFFS: Record<string, CodeDiff> = {
-    SQL_INJECTION: {
-        fileName: 'auth.py',
-        language: 'Python',
-        vulnerability: 'SQL Injection in Login Endpoint',
-        severity: 'critical',
-        explanation: 'User input was directly concatenated into SQL query, allowing attackers to inject malicious SQL code and bypass authentication.',
-        before: `def login(username, password):
-    query = f"SELECT * FROM users WHERE username='{username}' AND password='{password}'"
-    result = db.execute(query)
-    if result:
-        return {"success": True, "token": generate_token()}
-    return {"success": False}`,
-        after: `def login(username, password):
-    # Use parameterized query to prevent SQL injection
-    query = "SELECT * FROM users WHERE username = ? AND password = ?"
-    result = db.execute(query, (username, password))
-    if result:
-        return {"success": True, "token": generate_token()}
-    return {"success": False}`
-    },
-    BUFFER_OVERFLOW: {
-        fileName: 'parser.c',
-        language: 'C',
-        vulnerability: 'Buffer Overflow in User-Agent Parser',
-        severity: 'high',
-        explanation: 'strcpy() was used without bounds checking, allowing attackers to overflow the buffer and potentially execute arbitrary code.',
-        before: `void parse_user_agent(char *input) {
-    char buffer[256];
-    strcpy(buffer, input);  // Vulnerable!
-    process_string(buffer);
-}`,
-        after: `void parse_user_agent(char *input) {
-    char buffer[256];
-    // Use strncpy with bounds checking
-    strncpy(buffer, input, sizeof(buffer) - 1);
-    buffer[sizeof(buffer) - 1] = '\\0';  // Ensure null termination
-    process_string(buffer);
-}`
-    },
-    XSS: {
-        fileName: 'render.js',
-        language: 'JavaScript',
-        vulnerability: 'Cross-Site Scripting (XSS)',
-        severity: 'high',
-        explanation: 'User input was rendered without sanitization, allowing script injection attacks.',
-        before: `function displayComment(comment) {
-    const div = document.getElementById('comments');
-    div.innerHTML += '<p>' + comment + '</p>';  // Dangerous!
-}`,
-        after: `function displayComment(comment) {
-    const div = document.getElementById('comments');
-    const p = document.createElement('p');
-    p.textContent = comment;  // Safe: Creates text node, not HTML
-    div.appendChild(p);
-}`
-    }
 };

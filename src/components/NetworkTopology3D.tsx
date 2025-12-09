@@ -1,5 +1,5 @@
 // 3D Network Topology Visualization with Attack Paths
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useMemo } from 'react';
 import { ZoomIn, ZoomOut, RotateCw } from 'lucide-react';
 
 interface NetworkNode {
@@ -35,22 +35,22 @@ export const NetworkTopology3D = ({ nodes = [], attackPaths = [] }: NetworkTopol
     const lastMousePos = useRef({ x: 0, y: 0 });
 
     // Generate sample network topology if none provided
-    const defaultNodes: NetworkNode[] = nodes.length > 0 ? nodes : [
+    const defaultNodes: NetworkNode[] = useMemo(() => nodes.length > 0 ? nodes : [
         { id: 'fw1', label: 'Perimeter Firewall', type: 'firewall', ip: '10.0.0.1', risk: 'low', vulnerabilities: 0, x: 0, y: 0, z: 0 },
         { id: 'web1', label: 'Web Server', type: 'server', ip: '10.0.1.10', risk: 'high', vulnerabilities: 3, x: -200, y: 100, z: 0 },
         { id: 'db1', label: 'Database', type: 'database', ip: '10.0.2.20', risk: 'critical', vulnerabilities: 5, x: 200, y: 100, z: -100 },
         { id: 'router1', label: 'Core Router', type: 'router', ip: '10.0.0.254', risk: 'medium', vulnerabilities: 1, x: 0, y: -100, z: 50 },
         { id: 'iot1', label: 'IoT Camera', type: 'iot', ip: '192.168.1.50', risk: 'critical', vulnerabilities: 8, x: -150, y: -50, z: 100 },
         { id: 'cloud1', label: 'S3 Bucket', type: 'cloud', ip: 'cloud-storage', risk: 'high', vulnerabilities: 2, x: 150, y: -100, z: -50 },
-    ];
+    ], [nodes]);
 
-    const defaultPaths: AttackPath[] = attackPaths.length > 0 ? attackPaths : [
+    const defaultPaths: AttackPath[] = useMemo(() => attackPaths.length > 0 ? attackPaths : [
         { from: 'fw1', to: 'web1', type: 'active', protocol: 'HTTPS' },
         { from: 'web1', to: 'db1', type: 'active', protocol: 'SQL' },
         { from: 'fw1', to: 'router1', type: 'potential', protocol: 'SSH' },
         { from: 'iot1', to: 'router1', type: 'blocked', protocol: 'Telnet' },
         { from: 'cloud1', to: 'db1', type: 'potential', protocol: 'S3' },
-    ];
+    ], [attackPaths]);
 
     const getRiskColor = (risk: string): string => {
         switch (risk) {

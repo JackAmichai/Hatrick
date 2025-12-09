@@ -11,7 +11,8 @@ import { HeatMapScanner } from './HeatMapScanner';
 import { PacketAnimation } from './PacketAnimation';
 import { AttackImpactPredictor } from './AttackImpactPredictor';
 import { CostOptimizationDashboard } from './CostOptimizationDashboard';
-import { CodeDiffViewer, SAMPLE_DIFFS } from './CodeDiffViewer';
+import { CodeDiffViewer } from './CodeDiffViewer';
+import { SAMPLE_DIFFS } from './codeDiffData';
 
 interface EnterprisePortfolioProps {
   missionCount: number;

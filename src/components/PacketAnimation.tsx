@@ -1,5 +1,5 @@
 // Real-Time Packet Animation - Visualize Network Traffic
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Activity, TrendingUp, AlertCircle } from 'lucide-react';
 
@@ -29,7 +29,7 @@ export const PacketAnimation = ({ isAttacking = false, attackType = 'DDoS' }: Pa
     });
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
-    const generatePacket = (): Packet => {
+    const generatePacket = useCallback((): Packet => {
         const types: ('normal' | 'suspicious' | 'malicious')[] = isAttacking 
             ? ['malicious', 'malicious', 'suspicious', 'normal']
             : ['normal', 'normal', 'normal', 'suspicious'];
@@ -45,7 +45,7 @@ export const PacketAnimation = ({ isAttacking = false, attackType = 'DDoS' }: Pa
             type: types[Math.floor(Math.random() * types.length)],
             timestamp: new Date()
         };
-    };
+    }, [isAttacking, attackType]);
 
     useEffect(() => {
         const interval = setInterval(() => {
@@ -70,7 +70,7 @@ export const PacketAnimation = ({ isAttacking = false, attackType = 'DDoS' }: Pa
         }, isAttacking ? 100 : 500); // Faster during attacks
 
         return () => clearInterval(interval);
-    }, [isAttacking, attackType]);
+    }, [isAttacking, generatePacket]);
 
     useEffect(() => {
         const canvas = canvasRef.current;

@@ -1,5 +1,5 @@
 // Cost Optimization Dashboard - LLM API costs and ROI metrics
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { DollarSign, TrendingUp, TrendingDown, Cpu, Clock, BarChart3 } from 'lucide-react';
 
@@ -39,13 +39,13 @@ export const CostOptimizationDashboard = ({
         efficiency: 0
     });
 
-    // Groq pricing (approximate, as of 2025)
-    const PRICING = {
+    // Groq pricing (approximate, as of 2025) - memoized to prevent re-renders
+    const PRICING = useMemo(() => ({
         'llama-3.3-70b-versatile': { input: 0.00059, output: 0.00079 }, // per 1K tokens
         'llama-3.1-8b-instant': { input: 0.00005, output: 0.00008 },
         'mixtral-8x7b-32768': { input: 0.00024, output: 0.00024 },
         'gemma2-9b-it': { input: 0.00002, output: 0.00002 }
-    };
+    }), []);
 
     useEffect(() => {
         if (!liveCostTracking) return;
@@ -100,7 +100,7 @@ export const CostOptimizationDashboard = ({
         }, 5000); // Update every 5 seconds
 
         return () => clearInterval(interval);
-    }, [missionCount, liveCostTracking]);
+    }, [missionCount, liveCostTracking, PRICING]);
 
     const formatCurrency = (amount: number) => {
         return new Intl.NumberFormat('en-US', {

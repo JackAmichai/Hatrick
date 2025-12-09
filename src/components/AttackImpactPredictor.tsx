@@ -66,6 +66,7 @@ export const AttackImpactPredictor = ({
         }, 100);
 
         return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [attackType, targetSystem]);
 
     const generatePrediction = (attack: string, system: string): ImpactPrediction => {

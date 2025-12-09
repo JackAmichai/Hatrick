@@ -1,5 +1,5 @@
 // Agent Thought Bubbles - Real-time streaming of agent reasoning
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Brain, Zap, MessageCircle } from 'lucide-react';
 
@@ -31,8 +31,8 @@ export const AgentThoughtBubbles = ({
     const [isTyping, setIsTyping] = useState(false);
     const scrollRef = useRef<HTMLDivElement>(null);
 
-    // Sample thought templates based on agent role
-    const thoughtTemplates: Record<string, string[]> = {
+    // Sample thought templates based on agent role - memoized to prevent re-renders
+    const thoughtTemplates = useMemo<Record<string, string[]>>(() => ({
         RED_SCANNER: [
             "Scanning ports 80, 443, 22... detecting open services",
             "HTTP server responds with Apache 2.4.29, checking CVE database",
@@ -75,7 +75,7 @@ export const AgentThoughtBubbles = ({
             "Approving automated incident response playbook",
             "Mitigation confidence: 82% based on historical data"
         ]
-    };
+    }), []);
 
     useEffect(() => {
         if (!isActive || !streamThoughts) return;
@@ -126,7 +126,7 @@ export const AgentThoughtBubbles = ({
         generateThought(); // Initial thought
 
         return () => clearInterval(interval);
-    }, [isActive, streamThoughts, agentId]);
+    }, [isActive, streamThoughts, agentId, thoughtTemplates]);
 
     useEffect(() => {
         if (scrollRef.current) {

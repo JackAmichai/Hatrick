@@ -508,9 +508,16 @@ async def websocket_endpoint(websocket: WebSocket):
                 mission_id = msg.get("mission", "NETWORK_FLOOD")
 
                 # --- INITIALIZE VIRTUAL ENVIRONMENT ---
-                print(f"Creating virtual environment for mission: {mission_id}")
+                print(f"🎯 Creating virtual environment for mission: {mission_id}")
                 venv = VirtualEnvironment(mission_id)
                 env_report = venv.get_environment_report()
+                
+                # Log environment details
+                print(f"📍 Target IP: {env_report['target_ip']}")
+                print(f"🔌 Open Ports: {list(env_report['open_ports'].keys())}")
+                print(f"🔓 Vulnerabilities Found: {len(env_report['vulnerabilities'])}")
+                for vuln in env_report['vulnerabilities']:
+                    print(f"   ⚠️ {vuln.get('type')}: {vuln.get('description')}")
                 
                 # Store environment for later code generation
                 last_turn_context['environment'] = env_report
@@ -572,16 +579,20 @@ Vulnerabilities: {len(env_report['vulnerabilities'])} detected
 Network: Firewall {env_report['network_info']['firewall']}, IDS/IPS {env_report['network_info']['ids_ips']}"""
 
                 # --- RED TEAM LOOP ---
+                print("🔴 Starting RED TEAM turn...")
                 red_approved = False
                 while not red_approved:
                     # 1. RED SCANNER
+                    print("   🔍 RED_SCANNER: Analyzing target...")
                     await manager.broadcast({"type": "STATE_UPDATE", "agent": "RED_SCANNER", "status": "THINKING"})
                     await asyncio.sleep(1.5)
                     try:
                         scan_result = scanner_chain.invoke({"input": scenario_context})
                         last_turn_context['scan_result'] = scan_result
+                        print(f"   ✅ RED_SCANNER result: {scan_result[:100]}...")
                     except Exception as e:
                         scan_result = f"Error: {str(e)}"
+                        print(f"   ❌ RED_SCANNER error: {e}")
                     await manager.broadcast({"type": "NEW_MESSAGE", "agent": "RED_SCANNER", "text": scan_result})
                     await manager.broadcast({"type": "STATE_UPDATE", "agent": "RED_SCANNER", "status": "IDLE"})
                     await asyncio.sleep(1)
@@ -623,6 +634,7 @@ Network: Firewall {env_report['network_info']['firewall']}, IDS/IPS {env_report[
                     await asyncio.sleep(1)
 
                     # 5. RED COMMANDER (PROPOSAL)
+                    print("   🎖️ RED_COMMANDER: Making final decision...")
                     await manager.broadcast({"type": "STATE_UPDATE", "agent": "RED_COMMANDER", "status": "THINKING"})
                     await asyncio.sleep(1.5)
                     try:
@@ -631,12 +643,15 @@ Network: Firewall {env_report['network_info']['firewall']}, IDS/IPS {env_report[
                         damage = final_move_json.get('damage', 0)
                         attack_desc = final_move_json.get('visual_desc', 'Proposed Attack')
                         last_turn_context['attack_name'] = attack_name
+                        print(f"   ✅ RED_COMMANDER decision: {attack_name} (Damage: {damage}%)")
                     except Exception as e:
                         attack_name = "Retry"
                         damage = 0
                         attack_desc = "Compute Error"
+                        print(f"   ❌ RED_COMMANDER error: {e}")
 
                     # ASK FOR APPROVAL
+                    print(f"   ⏳ Waiting for user approval of RED attack: {attack_name}")
                     await manager.broadcast({
                         "type": "PROPOSAL",
                         "team": "RED",
@@ -649,9 +664,11 @@ Network: Firewall {env_report['network_info']['firewall']}, IDS/IPS {env_report[
 
                     if decision.get("approved") is True:
                         red_approved = True
+                        print(f"   ✅ RED attack APPROVED: {attack_name}")
                         await manager.broadcast({"type": "NEW_MESSAGE", "agent": "RED_COMMANDER", "text": f"Authorized: {attack_name}"})
                         await manager.broadcast({"type": "ATTACK_LAUNCH", "damage": damage, "desc": attack_desc})
                     else:
+                        print(f"   ❌ RED attack REJECTED - Rethinking...")
                         await manager.broadcast({"type": "NEW_MESSAGE", "agent": "RED_COMMANDER", "text": "Authorization Denied. Rethinking Strategy..."})
 
                     await manager.broadcast({"type": "STATE_UPDATE", "agent": "RED_COMMANDER", "status": "IDLE"})
@@ -659,10 +676,11 @@ Network: Firewall {env_report['network_info']['firewall']}, IDS/IPS {env_report[
 
 
                 # --- BLUE TEAM LOOP ---
-                print("Starting Blue Team Turn...")
+                print("🔵 Starting BLUE TEAM turn...")
                 blue_approved = False
                 while not blue_approved:
                     # 1. BLUE WATCHMAN
+                    print("   🔍 BLUE_SCANNER: Analyzing attack...")
                     await manager.broadcast({"type": "STATE_UPDATE", "agent": "BLUE_SCANNER", "status": "THINKING"})
                     await asyncio.sleep(1.5)
                     try:

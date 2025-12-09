@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Shield, Activity, Cloud, Lock, AlertTriangle, BarChart3, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { DashboardData } from '../types/api';
@@ -13,13 +13,7 @@ export const AdvancedDashboard = ({ isOpen, onClose }: AdvancedDashboardProps) =
     const [data, setData] = useState<DashboardData>({});
     const [loading, setLoading] = useState(false);
 
-    useEffect(() => {
-        if (isOpen) {
-            loadData();
-        }
-    }, [isOpen, activeTab]);
-
-    const loadData = async () => {
+    const loadData = useCallback(async () => {
         setLoading(true);
         try {
             const backendUrl = import.meta.env.VITE_BACKEND_URL || 
@@ -51,7 +45,13 @@ export const AdvancedDashboard = ({ isOpen, onClose }: AdvancedDashboardProps) =
         } finally {
             setLoading(false);
         }
-    };
+    }, [activeTab]);
+
+    useEffect(() => {
+        if (isOpen) {
+            loadData();
+        }
+    }, [isOpen, activeTab, loadData]);
 
     return (
         <AnimatePresence>

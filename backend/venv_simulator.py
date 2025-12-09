@@ -71,7 +71,7 @@ class VirtualEnvironment:
         return versions.get(service, "Unknown")
     
     def _detect_vulnerabilities(self) -> list:
-        """Detect vulnerabilities based on mission type"""
+        """Detect vulnerabilities based on mission type - ALWAYS generates relevant vulnerabilities"""
         vulns = []
         
         if self.mission_type == "NETWORK_FLOOD":
@@ -79,40 +79,89 @@ class VirtualEnvironment:
                 "type": "DDoS Susceptibility",
                 "severity": "HIGH",
                 "description": f"No rate limiting detected on {self.target_ip}",
-                "exploit": "UDP/TCP flood attack possible"
+                "exploit": "UDP/TCP flood attack possible",
+                "target_port": random.choice(list(self.open_ports.keys())) if self.open_ports else 80
             })
             
         elif self.mission_type == "BUFFER_OVERFLOW":
-            if 80 in self.open_ports or 8080 in self.open_ports:
-                vulns.append({
-                    "type": "Buffer Overflow",
-                    "severity": "CRITICAL",
-                    "description": "Unchecked buffer in HTTP header parsing",
-                    "exploit": "Send oversized User-Agent header",
-                    "cve": "CVE-2023-XXXX"
-                })
+            # Always ensure HTTP port is available for buffer overflow
+            target_port = 80 if 80 in self.open_ports else (8080 if 8080 in self.open_ports else list(self.open_ports.keys())[0])
+            vulns.append({
+                "type": "Buffer Overflow",
+                "severity": "CRITICAL",
+                "description": f"Unchecked buffer in HTTP header parsing on port {target_port}",
+                "exploit": "Send oversized User-Agent header (>1024 bytes)",
+                "cve": "CVE-2023-44487",
+                "target_port": target_port
+            })
                 
         elif self.mission_type == "SQL_INJECTION":
-            if 3306 in self.open_ports or 5432 in self.open_ports:
-                vulns.append({
-                    "type": "SQL Injection",
-                    "severity": "CRITICAL",
-                    "description": "Unvalidated input in login form",
-                    "exploit": "' OR '1'='1' -- ",
-                    "endpoint": f"http://{self.target_ip}/login"
-                })
+            # Always provide SQL injection vulnerability
+            db_port = 3306 if 3306 in self.open_ports else (5432 if 5432 in self.open_ports else 3306)
+            vulns.append({
+                "type": "SQL Injection",
+                "severity": "CRITICAL",
+                "description": f"Unvalidated input in login form (DB on port {db_port})",
+                "exploit": "' OR '1'='1' -- ",
+                "endpoint": f"http://{self.target_ip}/login",
+                "db_port": db_port
+            })
                 
         elif self.mission_type == "MITM_ATTACK":
-            if 443 in self.open_ports:
-                service = self.services.get(443, {})
-                if "1.0.1" in service.get("version", ""):
-                    vulns.append({
-                        "type": "Weak TLS Configuration",
-                        "severity": "HIGH",
-                        "description": "Vulnerable OpenSSL version allows Heartbleed",
-                        "exploit": "TLS downgrade attack possible",
-                        "cve": "CVE-2014-0160"
-                    })
+            # Always provide MITM vulnerability
+            vulns.append({
+                "type": "Weak TLS Configuration",
+                "severity": "HIGH",
+                "description": "Vulnerable OpenSSL version allows Heartbleed/POODLE",
+                "exploit": "TLS downgrade attack, certificate spoofing",
+                "cve": "CVE-2014-0160",
+                "target_port": 443 if 443 in self.open_ports else 8443
+            })
+        
+        elif self.mission_type == "IOT_ATTACK":
+            vulns.append({
+                "type": "IoT Default Credentials",
+                "severity": "CRITICAL",
+                "description": "Default admin credentials on IoT device",
+                "exploit": "admin:admin, root:root login",
+                "device_ip": self.target_ip
+            })
+            
+        elif self.mission_type == "CLOUD_BREACH":
+            vulns.append({
+                "type": "S3 Bucket Misconfiguration",
+                "severity": "CRITICAL",
+                "description": "Public read access on sensitive S3 bucket",
+                "exploit": "aws s3 ls s3://bucket-name --no-sign-request",
+                "bucket_name": f"corp-data-{random.randint(100,999)}"
+            })
+            
+        elif self.mission_type == "SUPPLY_CHAIN":
+            vulns.append({
+                "type": "Dependency Confusion",
+                "severity": "CRITICAL",
+                "description": "Private package name collision with public registry",
+                "exploit": "Upload malicious package with higher version",
+                "package_name": f"internal-utils-{random.randint(1,99)}"
+            })
+            
+        elif self.mission_type == "API_EXPLOIT":
+            vulns.append({
+                "type": "Broken Object Level Authorization (BOLA)",
+                "severity": "CRITICAL",
+                "description": "API allows access to other users' data via ID manipulation",
+                "exploit": "GET /api/users/123 -> GET /api/users/124",
+                "endpoint": f"http://{self.target_ip}/api/users"
+            })
+        
+        # Always add at least one generic vulnerability if none found
+        if not vulns:
+            vulns.append({
+                "type": "Service Misconfiguration",
+                "severity": "MEDIUM",
+                "description": f"Outdated service version on {self.target_ip}",
+                "exploit": "Check CVE database for known exploits"
+            })
         
         return vulns
     
