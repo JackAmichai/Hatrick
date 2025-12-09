@@ -20,7 +20,6 @@ export const CodeViewer = ({ isOpen, onClose, team, code, title, description }: 
         setTimeout(() => setCopied(false), 2000);
     };
 
-    const teamColor = team === "RED" ? "red" : "blue";
     const bgGradient = team === "RED" 
         ? "from-red-900/20 to-neutral-900" 
         : "from-blue-900/20 to-neutral-900";
