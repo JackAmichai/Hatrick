@@ -166,7 +166,7 @@ export const useGameSocket = () => {
         // Connect to Backend
         const backendUrl = import.meta.env.VITE_BACKEND_URL
             ? import.meta.env.VITE_BACKEND_URL.replace(/^http/, 'ws') + "/ws/game"
-            : "ws://localhost:8000/ws/game";
+            : (import.meta.env.DEV ? "ws://localhost:8000/ws/game" : "wss://hatrick.onrender.com/ws/game");
 
         const ws = new WebSocket(backendUrl);
         socketRef.current = ws;
