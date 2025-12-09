@@ -15,6 +15,10 @@ interface HatProps {
 }
 
 export const Hat = ({ role, color, status }: HatProps) => {
+    // Determine team based on color
+    const isRedTeam = color.toLowerCase().includes('44') || color.toLowerCase().includes('f97') || color.toLowerCase().includes('d946') || color.toLowerCase().includes('ef4');
+    const teamEmoji = isRedTeam ? '⚔️' : '🛡️';
+    
     return (
         <div className="flex flex-col items-center gap-2">
             {/* The Floating Animation */}
@@ -28,8 +32,13 @@ export const Hat = ({ role, color, status }: HatProps) => {
                     repeat: Infinity,
                     ease: "easeInOut",
                 }}
+                className="relative"
             >
                 <HatSVG color={color} />
+                {/* Team Emoji Badge */}
+                <div className="absolute -top-1 -right-1 text-lg">
+                    {teamEmoji}
+                </div>
             </motion.div>
             <span className="text-white text-xs font-mono opacity-50">{role}</span>
         </div>
