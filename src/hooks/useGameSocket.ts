@@ -212,21 +212,22 @@ export const useGameSocket = () => {
                 clearBackendFallback();
                 console.log("📨 Game Event", data.type, data);
 
+                // Mark backend as active on first meaningful message
+                if (!backendActiveRef.current && (data.type === "STATE_UPDATE" || data.type === "NEW_MESSAGE" || data.type === "IMPACT")) {
+                    backendActiveRef.current = true;
+                    clearBackendFallback();
+                    console.log("✅ Backend is active - LLM responses confirmed");
+                }
+
                 if (data.type === "STATE_UPDATE" && data.agent && data.status) {
                     setStatuses(prev => ({ ...prev, [data.agent]: data.status! }));
                 }
-            clearBackendFallback();
 
                 if (data.type === "NEW_MESSAGE" && data.agent && data.text) {
                     setMessages(prev => ({ ...prev, [data.agent]: data.text! }));
                 }
 
                 if (data.type === "IMPACT") {
-
-                if (!backendActiveRef.current) {
-                    backendActiveRef.current = true;
-                    clearBackendFallback();
-                }
                     const damage = data.damage_taken ?? 0;
                     setHealth(prev => Math.max(0, prev - damage));
                     if (data.mitigation_score !== undefined) setMitigationScore(data.mitigation_score);
