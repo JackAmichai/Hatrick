@@ -55,7 +55,7 @@ export const CostOptimizationDashboard = ({
             setMetrics(prev => {
                 // Simulate token usage for different models
                 const newTokens = {
-                    'llama-3.1-70b-versatile': { input: Math.floor(Math.random() * 500) + 200, output: Math.floor(Math.random() * 300) + 100 },
+                    'llama-3.3-70b-versatile': { input: Math.floor(Math.random() * 500) + 200, output: Math.floor(Math.random() * 300) + 100 },
                     'llama-3.1-8b-instant': { input: Math.floor(Math.random() * 300) + 150, output: Math.floor(Math.random() * 200) + 80 },
                     'mixtral-8x7b-32768': { input: Math.floor(Math.random() * 400) + 180, output: Math.floor(Math.random() * 250) + 90 },
                     'gemma2-9b-it': { input: Math.floor(Math.random() * 250) + 100, output: Math.floor(Math.random() * 150) + 60 }

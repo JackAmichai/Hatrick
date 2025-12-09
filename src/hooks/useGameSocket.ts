@@ -195,53 +195,44 @@ export const useGameSocket = () => {
             clearTimeout(connectionTimeout);
         };
         
-        ws.onerror = () => {
-            console.error("❌ Game Connector Failed. Mock mode will be used on game start.");
-            clearTimeout(connectionTimeout);
-        };
-        
-        ws.onclose = () => {
-            console.warn("🔌 WebSocket closed. Mock mode will be used if game starts.");
-            clearTimeout(connectionTimeout);
-        };
-
         ws.onmessage = (event) => {
-            const data: GameEvent = JSON.parse(event.data);
+            try {
+                const data: GameEvent = JSON.parse(event.data);
+                console.log("📨 Game Event", data.type, data);
 
-            if (data.type === "STATE_UPDATE") setStatuses(prev => ({ ...prev, [data.agent]: data.status! }));
-
-            // EXCLUSIVE SPEECH: Clear others when someone speaks
-            if (data.type === "NEW_MESSAGE") {
-                setMessages({ [data.agent]: data.text! });
-            }
-
-            if (data.type === "IMPACT") {
-                const damage = data.damage_taken!;
-                setHealth(prev => Math.max(0, prev - damage));
-                if (data.mitigation_score !== undefined) setMitigationScore(data.mitigation_score);
-                if (data.defense_desc) setDefenseDesc(data.defense_desc);
-                if (damage > 0) {
-                    setIsHit(true);
-                    setTimeout(() => setIsHit(false), 500);
+                if (data.type === "STATE_UPDATE" && data.agent && data.status) {
+                    setStatuses(prev => ({ ...prev, [data.agent]: data.status! }));
                 }
-            }
-            // Handle Proposal
-            if (data.type === "PROPOSAL") {
-                setProposal({
-                    team: data.team!,
-                    action: data.action!,
-                    description: data.description!
-                });
-            }
-            
-            // Handle Code Response
-            if (data.type === "CODE_RESPONSE") {
-                setCodeData({
-                    team: data.team!,
-                    code: data.code!,
-                    title: data.title!,
-                    description: data.description!
-                });
+
+                if (data.type === "NEW_MESSAGE" && data.agent && data.text) {
+                    setMessages(prev => ({ ...prev, [data.agent]: data.text! }));
+                }
+
+                if (data.type === "IMPACT") {
+                    const damage = data.damage_taken ?? 0;
+                    setHealth(prev => Math.max(0, prev - damage));
+                    if (data.mitigation_score !== undefined) setMitigationScore(data.mitigation_score);
+                    if (data.defense_desc) setDefenseDesc(data.defense_desc);
+                }
+
+                if (data.type === "PROPOSAL" && data.team && data.action && data.description) {
+                    setProposal({
+                        team: data.team,
+                        action: data.action,
+                        description: data.description
+                    });
+                }
+
+                if (data.type === "CODE_RESPONSE" && data.team && data.code && data.title) {
+                    setCodeData({
+                        team: data.team,
+                        code: data.code,
+                        title: data.title,
+                        description: data.description ?? ""
+                    });
+                }
+            } catch (error) {
+                console.error("Failed to parse game event", error, event.data);
             }
         };
 
