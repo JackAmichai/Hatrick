@@ -2,6 +2,15 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 import asyncio
 import json
+import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
+
+# Print status of API keys (without revealing them)
+print(f"🔑 GROQ_API_KEY: {'✅ SET' if os.getenv('GROQ_API_KEY') else '❌ NOT SET'}")
+print(f"🔑 HUGGINGFACEHUB_API_TOKEN: {'✅ SET' if os.getenv('HUGGINGFACEHUB_API_TOKEN') else '❌ NOT SET'}")
 
 app = FastAPI()
 
