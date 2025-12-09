@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Shield, Activity, Cloud, Lock, AlertTriangle, BarChart3, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import type { DashboardData } from '../types/api';
 
 interface AdvancedDashboardProps {
     isOpen: boolean;
@@ -9,7 +10,7 @@ interface AdvancedDashboardProps {
 
 export const AdvancedDashboard = ({ isOpen, onClose }: AdvancedDashboardProps) => {
     const [activeTab, setActiveTab] = useState<'defense' | 'intel' | 'compliance'>('defense');
-    const [data, setData] = useState<any>({});
+    const [data, setData] = useState<DashboardData>({});
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
@@ -152,7 +153,7 @@ export const AdvancedDashboard = ({ isOpen, onClose }: AdvancedDashboardProps) =
                                                         </div>
                                                     </div>
                                                     <div className="mt-4 space-y-2">
-                                                        {data.deception.deployed_decoys?.map((decoy: any, idx: number) => (
+                                                        {data.deception.deployed_decoys?.map((decoy: { name: string; type: string; status: string; service?: string; purpose?: string; location?: string }, idx: number) => (
                                                             <div key={idx} className="p-3 bg-white/5 rounded border-l-4 border-yellow-500">
                                                                 <div className="font-semibold text-white">{decoy.service}</div>
                                                                 <div className="text-xs text-gray-400 mt-1">{decoy.purpose} • {decoy.location}</div>
@@ -173,13 +174,13 @@ export const AdvancedDashboard = ({ isOpen, onClose }: AdvancedDashboardProps) =
                                                         <div className="flex justify-between items-center">
                                                             <span className="text-gray-400">Trust Score</span>
                                                             <span className="text-xl font-bold text-green-400">
-                                                                {(data.zeroTrust.trust_score * 100).toFixed(0)}%
+                                                                {((data.zeroTrust.trust_score ?? 0) * 100).toFixed(0)}%
                                                             </span>
                                                         </div>
                                                         <div className="w-full h-2 bg-gray-700 rounded-full overflow-hidden">
                                                             <div 
                                                                 className="h-full bg-gradient-to-r from-green-500 to-blue-500"
-                                                                style={{ width: `${data.zeroTrust.trust_score * 100}%` }}
+                                                                style={{ width: `${(data.zeroTrust.trust_score ?? 0) * 100}%` }}
                                                             />
                                                         </div>
                                                         <div className="grid grid-cols-2 gap-2 mt-4">
@@ -208,16 +209,16 @@ export const AdvancedDashboard = ({ isOpen, onClose }: AdvancedDashboardProps) =
                                                         Network Segmentation
                                                     </h3>
                                                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                                                        {Object.entries(data.network.zones || {}).map(([key, zone]: [string, any]) => (
-                                                            <div key={key} className="p-3 bg-white/5 rounded border border-white/10">
+                                                        {(data.network.zones || []).map((zone, idx) => (
+                                                            <div key={idx} className="p-3 bg-white/5 rounded border border-white/10">
                                                                 <div className="text-xs text-gray-400 mb-1">{zone.name}</div>
                                                                 <div className="flex items-center gap-2">
                                                                     <div className={`w-3 h-3 rounded-full ${
-                                                                        zone.trust_level > 7 ? 'bg-green-500' :
-                                                                        zone.trust_level > 4 ? 'bg-yellow-500' :
+                                                                        zone.trust_level === 'production' || zone.trust_level === 'restricted' ? 'bg-green-500' :
+                                                                        zone.trust_level === 'development' ? 'bg-yellow-500' :
                                                                         'bg-red-500'
                                                                     }`} />
-                                                                    <span className="text-white font-semibold">L{zone.trust_level}</span>
+                                                                    <span className="text-white font-semibold uppercase">{zone.trust_level}</span>
                                                                 </div>
                                                             </div>
                                                         ))}
@@ -234,7 +235,7 @@ export const AdvancedDashboard = ({ isOpen, onClose }: AdvancedDashboardProps) =
                                                 <div className="bg-white/5 p-5 rounded-lg border border-white/10">
                                                     <h3 className="text-lg font-bold text-white mb-3">Latest Threat Intelligence</h3>
                                                     <div className="space-y-3">
-                                                        {data.threatIntel.indicators_of_compromise?.map((ioc: any, idx: number) => (
+                                                        {data.threatIntel.indicators_of_compromise?.map((ioc: { type: string; value: string; severity: string; threat_level?: string; associated_malware?: string; associated_campaign?: string }, idx: number) => (
                                                             <div key={idx} className={`p-3 rounded border-l-4 ${
                                                                 ioc.threat_level === 'CRITICAL' ? 'border-red-500 bg-red-500/10' :
                                                                 ioc.threat_level === 'HIGH' ? 'border-orange-500 bg-orange-500/10' :
@@ -264,17 +265,17 @@ export const AdvancedDashboard = ({ isOpen, onClose }: AdvancedDashboardProps) =
                                                     <div className="mt-6">
                                                         <h4 className="font-bold text-white mb-3">Recent CVEs</h4>
                                                         <div className="space-y-2">
-                                                            {data.threatIntel.latest_cves?.map((cve: any, idx: number) => (
+                                                            {data.threatIntel.latest_cves?.map((cve: { id: string; cve_id?: string; severity: string; description: string; cvss_score?: number }, idx: number) => (
                                                                 <div key={idx} className="p-3 bg-white/5 rounded">
                                                                     <div className="flex justify-between items-start">
                                                                         <div>
                                                                             <span className="font-bold text-white">{cve.cve_id}</span>
                                                                             <span className={`ml-2 px-2 py-0.5 rounded text-xs ${
-                                                                                cve.cvss_score >= 9 ? 'bg-red-600' :
-                                                                                cve.cvss_score >= 7 ? 'bg-orange-600' :
+                                                                                (cve.cvss_score ?? 0) >= 9 ? 'bg-red-600' :
+                                                                                (cve.cvss_score ?? 0) >= 7 ? 'bg-orange-600' :
                                                                                 'bg-yellow-600'
                                                                             }`}>
-                                                                                CVSS {cve.cvss_score}
+                                                                                CVSS {cve.cvss_score ?? 0}
                                                                             </span>
                                                                             <p className="text-sm text-gray-300 mt-1">{cve.description}</p>
                                                                         </div>
@@ -298,22 +299,22 @@ export const AdvancedDashboard = ({ isOpen, onClose }: AdvancedDashboardProps) =
                                                         <div className="flex justify-between items-center mb-2">
                                                             <span className="text-gray-400">Overall Score</span>
                                                             <span className="text-2xl font-bold text-green-400">
-                                                                {(data.compliance.overall_score * 100).toFixed(0)}%
+                                                                {((data.compliance.overall_score ?? 0) * 100).toFixed(0)}%
                                                             </span>
                                                         </div>
                                                         <div className="w-full h-3 bg-gray-700 rounded-full overflow-hidden">
                                                             <div 
                                                                 className={`h-full ${
-                                                                    data.compliance.overall_score > 0.8 ? 'bg-green-500' :
-                                                                    data.compliance.overall_score > 0.6 ? 'bg-yellow-500' :
+                                                                    (data.compliance.overall_score ?? 0) > 0.8 ? 'bg-green-500' :
+                                                                    (data.compliance.overall_score ?? 0) > 0.6 ? 'bg-yellow-500' :
                                                                     'bg-red-500'
                                                                 }`}
-                                                                style={{ width: `${data.compliance.overall_score * 100}%` }}
+                                                                style={{ width: `${(data.compliance.overall_score ?? 0) * 100}%` }}
                                                             />
                                                         </div>
                                                     </div>
                                                     <div className="space-y-2">
-                                                        {data.compliance.compliance_status?.map((item: any, idx: number) => (
+                                                        {data.compliance.compliance_status?.map((item: { control: string; status: string; description: string; requirement?: string }, idx: number) => (
                                                             <div key={idx} className="flex items-center justify-between p-2 bg-white/5 rounded">
                                                                 <span className="text-sm text-gray-300">{item.requirement}</span>
                                                                 <span className={`px-2 py-1 rounded text-xs font-bold ${
@@ -340,7 +341,7 @@ export const AdvancedDashboard = ({ isOpen, onClose }: AdvancedDashboardProps) =
                                                         </div>
                                                     </div>
                                                     <div className="space-y-2">
-                                                        {data.dlp.violations?.map((violation: any, idx: number) => (
+                                                        {data.dlp.violations?.map((violation: { type: string; severity: string; user: string; timestamp: string; blocked?: boolean; action?: string; location?: string }, idx: number) => (
                                                             <div key={idx} className={`p-3 rounded border-l-4 ${
                                                                 violation.blocked ? 'border-green-500 bg-green-500/10' : 'border-red-500 bg-red-500/10'
                                                             }`}>

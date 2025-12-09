@@ -5,6 +5,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import type { APTProfile } from '../types/api';
 import { NetworkTopology3D } from './NetworkTopology3D';
 import { HeatMapScanner } from './HeatMapScanner';
 import { PacketAnimation } from './PacketAnimation';
@@ -73,7 +74,7 @@ const EnterprisePortfolio: React.FC<EnterprisePortfolioProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<TabId>('3d-topology');
   const [showAPTProfiles, setShowAPTProfiles] = useState(false);
-  const [aptProfiles, setAptProfiles] = useState<any[]>([]);
+  const [aptProfiles, setAptProfiles] = useState<APTProfile[]>([]);
   const [selectedDiff, setSelectedDiff] = useState<keyof typeof SAMPLE_DIFFS>('SQL_INJECTION');
 
   // Fetch APT profiles from backend

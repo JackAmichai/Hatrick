@@ -12,7 +12,11 @@ interface AgentDebateProps {
         target?: string;
     }>;
     voteResults: {
-        winner: any;
+        winner: {
+            agent_name: string;
+            proposal_text: string;
+            confidence: number;
+        } | null;
         all_votes: Array<{
             agent: string;
             score: number;

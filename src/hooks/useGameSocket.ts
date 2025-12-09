@@ -25,7 +25,7 @@ interface GameEvent {
     // Code fields
     code?: string;
     title?: string;
-    environment?: any;
+    environment?: Record<string, unknown>;
 }
 
 export const useGameSocket = () => {

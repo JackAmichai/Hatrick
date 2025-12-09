@@ -8,6 +8,16 @@ export interface DeceptionStatus {
   decoys_active: number;
   interactions_detected: number;
   threat_level: 'low' | 'medium' | 'high' | 'critical';
+  total_decoys?: number;
+  alerts_triggered?: number;
+  deployed_decoys?: Array<{
+    name: string;
+    type: string;
+    status: string;
+    service?: string;
+    purpose?: string;
+    location?: string;
+  }>;
   recent_interactions: Array<{
     timestamp: string;
     source_ip: string;
@@ -20,6 +30,7 @@ export interface ZeroTrustPolicies {
   total_policies: number;
   active_policies: number;
   microsegments: number;
+  trust_score?: number;
   policies: Array<{
     name: string;
     type: string;
@@ -43,6 +54,21 @@ export interface ThreatIntelligence {
   feeds_active: number;
   iocs_detected: number;
   threat_score: number;
+  indicators_of_compromise?: Array<{
+    type: string;
+    value: string;
+    severity: string;
+    threat_level?: string;
+    associated_malware?: string;
+    associated_campaign?: string;
+  }>;
+  latest_cves?: Array<{
+    id: string;
+    cve_id?: string;
+    severity: string;
+    description: string;
+    cvss_score?: number;
+  }>;
   latest_threats: Array<{
     name: string;
     severity: 'low' | 'medium' | 'high' | 'critical';
@@ -55,10 +81,17 @@ export interface ThreatIntelligence {
 export interface ComplianceStatus {
   framework: 'GDPR' | 'HIPAA' | 'PCI-DSS' | 'SOC2';
   compliance_score: number;
+  overall_score?: number;
   passed_controls: number;
   failed_controls: number;
   pending_controls: number;
   last_audit: string;
+  compliance_status?: Array<{
+    control: string;
+    status: string;
+    description: string;
+    requirement?: string;
+  }>;
   findings: Array<{
     control_id: string;
     status: 'pass' | 'fail' | 'pending';
@@ -68,12 +101,48 @@ export interface ComplianceStatus {
 
 // ==================== Dashboard Data Types ====================
 
+export interface DLPStatus {
+  prevention_rate: number;
+  violations?: Array<{
+    type: string;
+    severity: string;
+    user: string;
+    timestamp: string;
+    blocked?: boolean;
+    action?: string;
+    location?: string;
+  }>;
+}
+
+export interface IOTDevices {
+  total_devices: number;
+  vulnerable_devices: number;
+  devices?: Array<{
+    name: string;
+    type: string;
+    risk_score: number;
+  }>;
+}
+
+export interface CloudMisconfigurations {
+  total_resources: number;
+  misconfigurations: number;
+  issues?: Array<{
+    service: string;
+    severity: string;
+    description: string;
+  }>;
+}
+
 export interface DashboardData {
   deception?: DeceptionStatus;
   zeroTrust?: ZeroTrustPolicies;
   network?: NetworkSegmentation;
   threatIntel?: ThreatIntelligence;
   compliance?: ComplianceStatus;
+  dlp?: DLPStatus;
+  iot?: IOTDevices;
+  cloud?: CloudMisconfigurations;
 }
 
 // ==================== Agent Types ====================
@@ -99,7 +168,11 @@ export interface VoteResults {
   approve: number;
   reject: number;
   abstain: number;
-  winner: string;
+  winner: {
+    agent_name: string;
+    proposal_text: string;
+    confidence: number;
+  } | null;
   proposals: Array<{
     agent: string;
     proposal: string;
