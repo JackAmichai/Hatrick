@@ -41,7 +41,7 @@ export const CostOptimizationDashboard = ({
 
     // Groq pricing (approximate, as of 2025)
     const PRICING = {
-        'llama-3.1-70b-versatile': { input: 0.00059, output: 0.00079 }, // per 1K tokens
+        'llama-3.3-70b-versatile': { input: 0.00059, output: 0.00079 }, // per 1K tokens
         'llama-3.1-8b-instant': { input: 0.00005, output: 0.00008 },
         'mixtral-8x7b-32768': { input: 0.00024, output: 0.00024 },
         'gemma2-9b-it': { input: 0.00002, output: 0.00002 }

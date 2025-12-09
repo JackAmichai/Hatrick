@@ -114,10 +114,10 @@ print("🚀 Initializing LLM Agents...")
 
 # RED TEAM - Attack-oriented models
 red_scanner_llm = get_llm("groq", "llama-3.1-8b-instant", 0.5)
-red_inf_llm = get_llm("groq", "llama-3.1-70b-versatile", 0.6) # New Infra Agent
+red_inf_llm = get_llm("groq", "llama-3.3-70b-versatile", 0.6) # New Infra Agent - Updated to 3.3
 red_data_llm = get_llm("groq", "mixtral-8x7b-32768", 0.6)    # New Data Agent
 red_weaponizer_llm = get_llm("groq", "llama3-70b-8192", 0.8)
-red_commander_llm = get_llm("groq", "llama-3.1-70b-versatile", 0.6)
+red_commander_llm = get_llm("groq", "llama-3.3-70b-versatile", 0.6)
 
 # BLUE TEAM - Defense-oriented models
 blue_scanner_llm = get_llm("groq", "gemma2-9b-it", 0.5)
@@ -218,8 +218,8 @@ The mitigation_score value should be between 1-100. Do not include any other tex
 
 # --- CODE GENERATION CHAINS ---
 
-red_coder_llm = get_llm("groq", "llama-3.1-70b-versatile", 0.9)  # High creativity for unique code
-blue_coder_llm = get_llm("groq", "llama-3.1-70b-versatile", 0.9)
+red_coder_llm = get_llm("groq", "llama-3.3-70b-versatile", 0.9)  # High creativity for unique code - Updated to 3.3
+blue_coder_llm = get_llm("groq", "llama-3.3-70b-versatile", 0.9)
 
 red_code_chain = create_chain(
     red_coder_llm,

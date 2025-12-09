@@ -11,7 +11,7 @@ import HatTrickHomepage from "./components/HatTrickHomepage"; // New Homepage
 import { useGameSocket } from "./hooks/useGameSocket";
 
 const attackTeam = [
-  { id: "RED_COMMANDER", name: "Llama-3.1 70B", color: "#EF4444" }, // Groq
+  { id: "RED_COMMANDER", name: "Llama-3.3 70B", color: "#EF4444" }, // Groq
   { id: "RED_WEAPONIZER", name: "Llama3 70B", color: "#D946EF" }, // Groq
   { id: "RED_SCANNER", name: "Llama-3.1 8B", color: "#F97316" }, // Groq
   { id: "RED_INF", name: "Llama-3 (70B)", color: "#EF4444" }, // Placeholder
