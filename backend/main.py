@@ -10,6 +10,66 @@ app = FastAPI()
 async def health_check():
     return {"status": "ok", "service": "Hatrick Backend"}
 
+# Advanced Features API Endpoints
+@app.get("/api/threat-intel")
+async def get_threat_intelligence():
+    """Get latest threat intelligence feeds"""
+    return ThreatIntelligenceFeed.fetch_threat_intel()
+
+@app.get("/api/deception/status")
+async def get_deception_status():
+    """Get status of deception layer"""
+    return DeceptionTechnology.deploy_deception_layer()
+
+@app.get("/api/zero-trust/policies")
+async def get_zero_trust_policies():
+    """Get zero trust architecture policies"""
+    return ZeroTrustArchitecture.enforce_zero_trust()
+
+@app.get("/api/compliance/{framework}")
+async def check_compliance_framework(framework: str):
+    """Check compliance against specific framework"""
+    return ComplianceMonitoring.check_compliance(framework)
+
+@app.get("/api/network/segmentation")
+async def get_network_segmentation():
+    """Get network segmentation visualization"""
+    return NetworkSegmentation.visualize_network_zones()
+
+@app.get("/api/iot/devices")
+async def scan_iot_devices():
+    """Scan for IoT devices and vulnerabilities"""
+    return {"devices": IoTDeviceSimulator.scan_iot_devices()}
+
+@app.get("/api/cloud/misconfigurations")
+async def scan_cloud():
+    """Scan cloud infrastructure for misconfigurations"""
+    return CloudMisconfiguration.scan_cloud_config()
+
+@app.get("/api/supply-chain/risk")
+async def analyze_supply_chain():
+    """Analyze supply chain security risks"""
+    return SupplyChainAttack.detect_supply_chain_risk()
+
+@app.get("/api/api-security/scan")
+async def scan_apis():
+    """Scan API endpoints for vulnerabilities"""
+    return APIExploitation.scan_api_endpoints()
+
+@app.get("/api/dlp/scan")
+async def scan_data_leakage():
+    """Scan for data loss prevention violations"""
+    return DataLossPrevention.scan_for_data_leakage()
+
+@app.get("/api/agent-metrics")
+async def get_agent_metrics():
+    """Get performance metrics for all agents"""
+    return {
+        "metrics": {agent_id: metrics.to_dict() 
+                   for agent_id, metrics in voting_orchestrator.agent_metrics.items()},
+        "total_agents": len(voting_orchestrator.agent_metrics)
+    }
+
 # IP Whitelist Middleware
 from ipaddress import ip_address, ip_network
 from fastapi import Request, HTTPException, status
@@ -59,6 +119,21 @@ from backend.agents import (
     red_code_chain, blue_code_chain
 )
 from backend.venv_simulator import VirtualEnvironment
+from backend.agent_orchestration import (
+    voting_orchestrator, red_strategist, blue_strategist, reflection_engine,
+    AgentProposal, AgentPersonality
+)
+from backend.advanced_attacks import (
+    IoTDeviceSimulator, CloudMisconfiguration, SupplyChainAttack,
+    APIExploitation, RansomwareSimulation, BlockchainAttack,
+    CICDCompromise, InsiderThreat, SocialEngineering
+)
+from backend.advanced_defenses import (
+    AISecurityInformationEventManagement, DeceptionTechnology,
+    ZeroTrustArchitecture, ThreatIntelligenceFeed, SOARPlaybooks,
+    DataLossPrevention, BehavioralBiometrics, NetworkSegmentation,
+    ComplianceMonitoring, PurpleTeam
+)
 
 # --- THE CONNECTION MANAGER ---
 class ConnectionManager:
@@ -98,7 +173,15 @@ SCENARIOS = {
     "NETWORK_FLOOD": "Target: Layer 3 Infrastructure. Scanning for bandwidth bottlenecks and accessible IPs.",
     "BUFFER_OVERFLOW": "Target: Layer 7 Application Memory. Scanning for unchecked buffers, stack pointers, and return addresses.",
     "SQL_INJECTION": "Target: Database Layer. Scanning for unsanitized input fields and SQL syntax errors.",
-    "MITM_ATTACK": "Target: Layer 5 Session. Scanning for unencrypted handshake protocols and key exchange vulnerabilities."
+    "MITM_ATTACK": "Target: Layer 5 Session. Scanning for unencrypted handshake protocols and key exchange vulnerabilities.",
+    "IOT_ATTACK": "Target: IoT Devices. Scanning for firmware vulnerabilities and default credentials.",
+    "CLOUD_BREACH": "Target: Cloud Infrastructure. Scanning for S3 buckets, IAM misconfigurations, and exposed APIs.",
+    "SUPPLY_CHAIN": "Target: Software Supply Chain. Analyzing dependencies for compromised packages.",
+    "RANSOMWARE": "Target: File Systems. Deploying encryption and persistence mechanisms.",
+    "BLOCKCHAIN": "Target: Smart Contracts. Scanning for reentrancy and oracle manipulation.",
+    "API_EXPLOIT": "Target: REST/GraphQL APIs. Testing for BOLA, excessive data exposure, and rate limiting.",
+    "INSIDER_THREAT": "Target: Internal Systems. Detecting privilege escalation and data exfiltration.",
+    "SOCIAL_ENGINEERING": "Target: Human Layer. Simulating phishing and business email compromise."
 }
 
 class RestartException(Exception):
@@ -246,7 +329,42 @@ async def websocket_endpoint(websocket: WebSocket):
                 # Store environment for later code generation
                 last_turn_context['environment'] = env_report
                 last_turn_context['mission_id'] = mission_id
-
+                
+                # --- GENERATE ADVANCED ATTACK CONTEXT ---
+                advanced_context = {}
+                if mission_id == "IOT_ATTACK":
+                    iot_devices = IoTDeviceSimulator.scan_iot_devices()
+                    advanced_context['iot_devices'] = iot_devices
+                    last_turn_context['iot_devices'] = iot_devices
+                elif mission_id == "CLOUD_BREACH":
+                    cloud_vulns = CloudMisconfiguration.scan_cloud_config()
+                    advanced_context['cloud_vulns'] = cloud_vulns
+                    last_turn_context['cloud_vulns'] = cloud_vulns
+                elif mission_id == "SUPPLY_CHAIN":
+                    supply_chain = SupplyChainAttack.detect_supply_chain_risk()
+                    advanced_context['supply_chain'] = supply_chain
+                    last_turn_context['supply_chain'] = supply_chain
+                elif mission_id == "API_EXPLOIT":
+                    api_vulns = APIExploitation.scan_api_endpoints()
+                    advanced_context['api_vulns'] = api_vulns
+                    last_turn_context['api_vulns'] = api_vulns
+                elif mission_id == "RANSOMWARE":
+                    ransomware_sim = RansomwareSimulation.simulate_ransomware_attack()
+                    advanced_context['ransomware'] = ransomware_sim
+                    last_turn_context['ransomware'] = ransomware_sim
+                elif mission_id == "BLOCKCHAIN":
+                    blockchain_vulns = BlockchainAttack.scan_smart_contract()
+                    advanced_context['blockchain'] = blockchain_vulns
+                    last_turn_context['blockchain'] = blockchain_vulns
+                elif mission_id == "INSIDER_THREAT":
+                    insider = InsiderThreat.detect_insider_activity()
+                    advanced_context['insider_threat'] = insider
+                    last_turn_context['insider_threat'] = insider
+                elif mission_id == "SOCIAL_ENGINEERING":
+                    phishing = SocialEngineering.simulate_phishing_campaign()
+                    advanced_context['phishing'] = phishing
+                    last_turn_context['phishing'] = phishing
+                
                 # --- NORMAL GAME LOOP ---
                 print(f"Starting Game Loop for Mission: {mission_id}")
                 base_scenario = SCENARIOS.get(mission_id, SCENARIOS["NETWORK_FLOOD"])

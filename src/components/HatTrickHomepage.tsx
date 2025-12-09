@@ -29,7 +29,7 @@ const missions = [
         relatedIds: [1, 3],
         status: 'in-progress' as const,
         energy: 75,
-        angle: 90
+        angle: 45
     },
     {
         id: 3,
@@ -43,7 +43,7 @@ const missions = [
         relatedIds: [2, 4],
         status: 'in-progress' as const,
         energy: 60,
-        angle: 180
+        angle: 90
     },
     {
         id: 4,
@@ -54,10 +54,66 @@ const missions = [
         description: 'Intercept the key exchange.',
         difficulty: 'EXTREME',
         icon: Shield,
-        relatedIds: [3],
+        relatedIds: [3, 5],
         status: 'pending' as const,
         energy: 30,
+        angle: 135
+    },
+    {
+        id: 5,
+        title: 'IoT Takeover',
+        missionId: 'IOT_ATTACK',
+        layer: 6,
+        type: 'IoT Exploitation',
+        description: 'Compromise smart devices.',
+        difficulty: 'MEDIUM',
+        icon: Network,
+        relatedIds: [4, 6],
+        status: 'pending' as const,
+        energy: 65,
+        angle: 180
+    },
+    {
+        id: 6,
+        title: 'Cloud Breach',
+        missionId: 'CLOUD_BREACH',
+        layer: 8,
+        type: 'Cloud Misconfiguration',
+        description: 'Exploit S3 buckets and IAM.',
+        difficulty: 'HIGH',
+        icon: Database,
+        relatedIds: [5, 7],
+        status: 'pending' as const,
+        energy: 50,
+        angle: 225
+    },
+    {
+        id: 7,
+        title: 'Supply Chain',
+        missionId: 'SUPPLY_CHAIN',
+        layer: 9,
+        type: 'Dependency Attack',
+        description: 'Poison the build pipeline.',
+        difficulty: 'EXTREME',
+        icon: Shield,
+        relatedIds: [6, 8],
+        status: 'pending' as const,
+        energy: 40,
         angle: 270
+    },
+    {
+        id: 8,
+        title: 'API Exploit',
+        missionId: 'API_EXPLOIT',
+        layer: 7,
+        type: 'BOLA & GraphQL',
+        description: 'Break API authorization.',
+        difficulty: 'MEDIUM',
+        icon: Cpu,
+        relatedIds: [7, 1],
+        status: 'pending' as const,
+        energy: 70,
+        angle: 315
     }
 ];
 

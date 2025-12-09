@@ -11,3 +11,5 @@ langchain-google-genai
 huggingface_hub
 langchain-community
 langchain-huggingface
+langgraph
+dataclasses-json
