@@ -107,23 +107,22 @@ def create_chain(llm, system_prompt, json_parser=False):
 # ========================================
 # LLM INITIALIZATION
 # ========================================
-# DIVERSE MODEL SHOWCASE: All Groq models for reliability
-# Groq offers multiple models with fast inference - all free tier
+# DIVERSE MODEL SHOWCASE: Mix of Groq and HuggingFace models for reliability and variety
 
-print("🚀 Initializing LLM Agents with GROQ DIVERSE MODELS...")
+print("🚀 Initializing LLM Agents with DIVERSE MODELS (Groq & HuggingFace)...")
 
 # ============ RED TEAM - Attack-oriented models ============
 # Scanner: Llama 3.1 8B (fast, good at analysis)
 red_scanner_llm = get_llm("groq", "llama-3.1-8b-instant", 0.5)
 print("   🔴 RED Scanner: Groq llama-3.1-8b-instant")
 
-# Infrastructure: Gemma2 9B (Google's model, good at technical reasoning)
-red_inf_llm = get_llm("groq", "gemma2-9b-it", 0.6)
-print("   🔴 RED Infrastructure: Groq gemma2-9b-it")
+# Infrastructure: Qwen 2.5 32B (Strong alternative to deprecated models)
+red_inf_llm = get_llm("groq", "qwen-2.5-32b", 0.6)
+print("   🔴 RED Infrastructure: Groq qwen-2.5-32b")
 
-# Data Analyst: Mixtral 8x7B (MoE, excellent at analysis)
-red_data_llm = get_llm("groq", "mixtral-8x7b-32768", 0.6)
-print("   🔴 RED Data: Groq mixtral-8x7b-32768")
+# Data Analyst: Mistral 7B (HuggingFace for variety)
+red_data_llm = get_llm("huggingface", "mistralai/Mistral-7B-Instruct-v0.3", 0.6)
+print("   🔴 RED Data: HuggingFace mistralai/Mistral-7B-Instruct-v0.3")
 
 # Weaponizer: Llama 3.3 70B (powerful for complex reasoning)
 red_weaponizer_llm = get_llm("groq", "llama-3.3-70b-versatile", 0.8)
@@ -134,27 +133,27 @@ red_commander_llm = get_llm("groq", "llama-3.3-70b-versatile", 0.6)
 print("   🔴 RED Commander: Groq llama-3.3-70b-versatile")
 
 # ============ BLUE TEAM - Defense-oriented models ============
-# Scanner: Llama 3.2 3B (lightweight, fast threat detection)
-blue_scanner_llm = get_llm("groq", "llama-3.2-3b-preview", 0.5)
-print("   🔵 BLUE Scanner: Groq llama-3.2-3b-preview")
+# Scanner: Llama 3.1 8B (Replacing deprecated 3.2 3B)
+blue_scanner_llm = get_llm("groq", "llama-3.1-8b-instant", 0.5)
+print("   🔵 BLUE Scanner: Groq llama-3.1-8b-instant")
 
-# Infrastructure: Gemma2 9B (Google's model, great for security)
-blue_inf_llm = get_llm("groq", "gemma2-9b-it", 0.5)
-print("   🔵 BLUE Infrastructure: Groq gemma2-9b-it")
+# Infrastructure: Qwen 2.5 32B (Replacing deprecated Gemma2)
+blue_inf_llm = get_llm("groq", "qwen-2.5-32b", 0.5)
+print("   🔵 BLUE Infrastructure: Groq qwen-2.5-32b")
 
-# Data Protection: Llama 3.2 1B (ultra-fast, good for compliance)
-blue_data_llm = get_llm("groq", "llama-3.2-1b-preview", 0.6)
-print("   🔵 BLUE Data: Groq llama-3.2-1b-preview")
+# Data Protection: Phi-3 Mini (HuggingFace for variety)
+blue_data_llm = get_llm("huggingface", "microsoft/Phi-3-mini-4k-instruct", 0.6)
+print("   🔵 BLUE Data: HuggingFace microsoft/Phi-3-mini-4k-instruct")
 
-# Engineer: Mixtral 8x7B (mixture of experts, strong defense)
-blue_weaponizer_llm = get_llm("groq", "mixtral-8x7b-32768", 0.7)
-print("   🔵 BLUE Engineer: Groq mixtral-8x7b-32768")
+# Engineer: Llama 3.3 70B (Replacing deprecated Mixtral)
+blue_weaponizer_llm = get_llm("groq", "llama-3.3-70b-versatile", 0.7)
+print("   🔵 BLUE Engineer: Groq llama-3.3-70b-versatile")
 
 # Commander: Llama 3.1 8B (fast JSON responses)
 blue_commander_llm = get_llm("groq", "llama-3.1-8b-instant", 0.5)
 print("   🔵 BLUE Commander: Groq llama-3.1-8b-instant")
 
-print("✅ All LLM Agents Initialized with GROQ DIVERSE MODELS!")
+print("✅ All LLM Agents Initialized with DIVERSE MODELS!")
 
 # ========================================
 # AGENT CHAINS
@@ -246,7 +245,7 @@ The mitigation_score value should be between 1-100. Do not include any other tex
 
 # --- CODE GENERATION CHAINS ---
 
-red_coder_llm = get_llm("groq", "llama-3.3-70b-versatile", 0.9)  # High creativity for unique code - Updated to 3.3
+red_coder_llm = get_llm("groq", "llama-3.3-70b-versatile", 0.9)  # High creativity for unique code
 blue_coder_llm = get_llm("groq", "llama-3.3-70b-versatile", 0.9)
 
 red_code_chain = create_chain(

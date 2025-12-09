@@ -44,13 +44,10 @@ export const CostOptimizationDashboard = ({
         // Groq Models
         'llama-3.3-70b-versatile': { input: 0.00059, output: 0.00079, provider: 'Groq' },
         'llama-3.1-8b-instant': { input: 0.00005, output: 0.00008, provider: 'Groq' },
-        'mixtral-8x7b-32768': { input: 0.00024, output: 0.00024, provider: 'Groq' },
-        'gemma2-9b-it': { input: 0.00020, output: 0.00020, provider: 'Groq' },
+        'qwen-2.5-32b': { input: 0.00029, output: 0.00059, provider: 'Groq' },
         // HuggingFace Models (free tier / pay-per-use estimates)
-        'mistral-7b-instruct': { input: 0.00015, output: 0.00015, provider: 'HuggingFace' },
-        'qwen2.5-7b-instruct': { input: 0.00010, output: 0.00010, provider: 'HuggingFace' },
-        'zephyr-7b-beta': { input: 0.00010, output: 0.00010, provider: 'HuggingFace' },
-        'phi-3-mini': { input: 0.00008, output: 0.00008, provider: 'HuggingFace' }
+        'Mistral-7B-Instruct-v0.3': { input: 0.00015, output: 0.00015, provider: 'HuggingFace' },
+        'Phi-3-mini-4k-instruct': { input: 0.00008, output: 0.00008, provider: 'HuggingFace' }
     }), []);
 
     useEffect(() => {
@@ -63,12 +60,9 @@ export const CostOptimizationDashboard = ({
                 const newTokens = {
                     'llama-3.3-70b-versatile': { input: Math.floor(Math.random() * 500) + 200, output: Math.floor(Math.random() * 300) + 100 },
                     'llama-3.1-8b-instant': { input: Math.floor(Math.random() * 300) + 150, output: Math.floor(Math.random() * 200) + 80 },
-                    'mixtral-8x7b-32768': { input: Math.floor(Math.random() * 400) + 180, output: Math.floor(Math.random() * 250) + 90 },
-                    'gemma2-9b-it': { input: Math.floor(Math.random() * 250) + 100, output: Math.floor(Math.random() * 150) + 60 },
-                    'mistral-7b-instruct': { input: Math.floor(Math.random() * 350) + 150, output: Math.floor(Math.random() * 200) + 80 },
-                    'qwen2.5-7b-instruct': { input: Math.floor(Math.random() * 300) + 120, output: Math.floor(Math.random() * 180) + 70 },
-                    'zephyr-7b-beta': { input: Math.floor(Math.random() * 280) + 100, output: Math.floor(Math.random() * 160) + 60 },
-                    'phi-3-mini': { input: Math.floor(Math.random() * 200) + 80, output: Math.floor(Math.random() * 120) + 50 }
+                    'qwen-2.5-32b': { input: Math.floor(Math.random() * 400) + 180, output: Math.floor(Math.random() * 250) + 90 },
+                    'Mistral-7B-Instruct-v0.3': { input: Math.floor(Math.random() * 350) + 150, output: Math.floor(Math.random() * 200) + 80 },
+                    'Phi-3-mini-4k-instruct': { input: Math.floor(Math.random() * 200) + 80, output: Math.floor(Math.random() * 120) + 50 }
                 };
 
                 const modelBreakdown = Object.entries(newTokens).map(([model, tokens]) => {
