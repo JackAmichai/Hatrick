@@ -38,6 +38,8 @@ export const useGameSocket = () => {
     const [proposal, setProposal] = useState<Proposal | null>(null); // Added state
     const [codeData, setCodeData] = useState<{ team: "RED" | "BLUE"; code: string; title: string; description: string } | null>(null);
     const socketRef = useRef<WebSocket | null>(null);
+    const backendActiveRef = useRef(false);
+    const backendFallbackTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     // MOCK DATA GENERATORS
     const mockStepRef = useRef(0);
@@ -174,6 +176,14 @@ export const useGameSocket = () => {
     };
 
     useEffect(() => {
+        // Helper to clear backend fallback timer
+        const clearBackendFallback = () => {
+            if (backendFallbackTimer.current) {
+                clearTimeout(backendFallbackTimer.current);
+                backendFallbackTimer.current = null;
+            }
+        };
+
         // Connect to Backend
         const backendUrl = import.meta.env.VITE_BACKEND_URL
             ? import.meta.env.VITE_BACKEND_URL.replace(/^http/, 'ws') + "/ws/game"
@@ -193,22 +203,30 @@ export const useGameSocket = () => {
         ws.onopen = () => {
             console.log("✅ Connected to Game Server");
             clearTimeout(connectionTimeout);
+            backendActiveRef.current = false;
         };
         
         ws.onmessage = (event) => {
             try {
                 const data: GameEvent = JSON.parse(event.data);
+                clearBackendFallback();
                 console.log("📨 Game Event", data.type, data);
 
                 if (data.type === "STATE_UPDATE" && data.agent && data.status) {
                     setStatuses(prev => ({ ...prev, [data.agent]: data.status! }));
                 }
+            clearBackendFallback();
 
                 if (data.type === "NEW_MESSAGE" && data.agent && data.text) {
                     setMessages(prev => ({ ...prev, [data.agent]: data.text! }));
                 }
 
                 if (data.type === "IMPACT") {
+
+                if (!backendActiveRef.current) {
+                    backendActiveRef.current = true;
+                    clearBackendFallback();
+                }
                     const damage = data.damage_taken ?? 0;
                     setHealth(prev => Math.max(0, prev - damage));
                     if (data.mitigation_score !== undefined) setMitigationScore(data.mitigation_score);
@@ -236,13 +254,29 @@ export const useGameSocket = () => {
             }
         };
 
-        return () => ws.close();
+        return () => {
+            clearTimeout(connectionTimeout);
+            clearBackendFallback();
+            ws.close();
+        };
     }, []);
 
     const startGame = (missionId: string) => {
         if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
             console.log(`🎮 Starting game with mission: ${missionId} (Backend mode)`);
             socketRef.current.send(JSON.stringify({ type: "START", mission: missionId }));
+            backendActiveRef.current = false;
+            if (backendFallbackTimer.current) {
+                clearTimeout(backendFallbackTimer.current);
+            }
+            backendFallbackTimer.current = setTimeout(() => {
+                if (!backendActiveRef.current) {
+                    console.warn("⏱️ No backend activity detected after START. Switching to mock mode.");
+                    socketRef.current?.close();
+                    socketRef.current = null;
+                    runMockMode();
+                }
+            }, 5000);
         } else {
             console.warn(`🎮 Starting game with mission: ${missionId} (Mock mode - backend unavailable)`);
             runMockMode();

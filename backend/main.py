@@ -383,6 +383,8 @@ async def receive_game_command(websocket: WebSocket, expected_type: str, last_tu
             command_type = msg.get("type")
 
             if command_type == "START":
+                if expected_type == "START":
+                    return msg
                 # User wants to restart the game
                 raise RestartException("Game Restart Requested")
 
