@@ -7,17 +7,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Mail, 
   MousePointer,
-  FileText,
   Users,
   AlertTriangle,
-  CheckCircle,
-  XCircle,
-  Clock,
   TrendingUp,
   TrendingDown,
-  Eye,
   Send,
-  Target,
   ChevronDown,
   ChevronRight,
   BarChart3
@@ -25,7 +19,6 @@ import {
 import type { 
   CampaignStatus,
   PhishingCampaign,
-  PhishingTarget,
   PhishingMetrics 
 } from '../../types/cyber';
 
@@ -42,7 +35,9 @@ const statusColors: Record<CampaignStatus, string> = {
   scheduled: 'text-blue-400 bg-blue-500/20 border-blue-500/30',
   active: 'text-green-400 bg-green-500/20 border-green-500/30',
   paused: 'text-amber-400 bg-amber-500/20 border-amber-500/30',
+  running: 'text-green-400 bg-green-500/20 border-green-500/30',
   completed: 'text-cyan-400 bg-cyan-500/20 border-cyan-500/30',
+  cancelled: 'text-red-400 bg-red-500/20 border-red-500/30',
 };
 
 const MetricBar = ({ 
@@ -78,7 +73,7 @@ const MetricBar = ({
 
 const CampaignCard = ({ 
   campaign, 
-  onClick,
+  onClick: _onClick,
   onStart,
   onStop 
 }: { 
@@ -91,9 +86,6 @@ const CampaignCard = ({
   
   const clickRate = campaign.emails_sent > 0 
     ? ((campaign.links_clicked / campaign.emails_sent) * 100).toFixed(1) 
-    : '0';
-  const reportRate = campaign.emails_sent > 0 
-    ? ((campaign.reported / campaign.emails_sent) * 100).toFixed(1) 
     : '0';
   
   return (

@@ -12,15 +12,11 @@ import {
   Users,
   Database,
   Wifi,
-  Shield,
-  AlertTriangle,
-  Eye,
   TrendingUp,
   TrendingDown,
   ExternalLink,
   ChevronDown,
-  ChevronRight,
-  Filter
+  ChevronRight
 } from 'lucide-react';
 import type { 
   AssetType,
@@ -63,8 +59,7 @@ const exposureColors: Record<ExposureLevel, string> = {
 };
 
 const AssetCard = ({ 
-  asset, 
-  onClick 
+  asset
 }: { 
   asset: AttackSurfaceAsset; 
   onClick?: () => void;

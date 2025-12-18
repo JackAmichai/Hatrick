@@ -9,7 +9,6 @@ import {
   AlertTriangle, 
   Shield, 
   Search,
-  Filter,
   ChevronDown,
   ChevronRight,
   FileText,
@@ -18,8 +17,7 @@ import {
   Activity,
   CheckCircle,
   XCircle,
-  AlertCircle,
-  Loader
+  AlertCircle
 } from 'lucide-react';
 import type { 
   Incident, 
@@ -52,9 +50,9 @@ const statusConfig: Record<IncidentStatus, { color: string; bg: string; icon: ty
 
 const TimelineEventCard = ({ 
   event, 
-  isFirst,
+  isFirst: _isFirst,
   isLast,
-  onClick 
+  onClick: _onClick 
 }: { 
   event: TimelineEvent; 
   isFirst: boolean;

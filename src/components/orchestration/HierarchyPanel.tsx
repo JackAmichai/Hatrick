@@ -12,14 +12,6 @@ interface HierarchyPanelProps {
   blueHierarchy: HierarchyCoordination | null;
 }
 
-const personalityIcons: Record<string, string> = {
-  aggressive: '⚔️',
-  cautious: '🛡️',
-  innovative: '💡',
-  analytical: '📊',
-  strategic: '♟️',
-};
-
 const InsightCard = ({ insight, index }: { insight: CoordinationInsight; index: number }) => {
   const [expanded, setExpanded] = useState(false);
   

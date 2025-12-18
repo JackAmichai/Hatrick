@@ -9,19 +9,10 @@ import {
   Target,
   Play,
   Pause,
-  Clock,
   AlertTriangle,
-  CheckCircle,
-  XCircle,
-  Database,
   Code,
-  FileText,
-  Calendar,
-  TrendingUp,
   ChevronDown,
   ChevronRight,
-  Eye,
-  Bookmark,
   Star
 } from 'lucide-react';
 import type { 
@@ -107,7 +98,7 @@ const HuntCard = ({
   hunt, 
   onStart,
   onStop,
-  onClick 
+  onClick: _onClick 
 }: { 
   hunt: ThreatHunt; 
   onStart?: () => void;
@@ -167,7 +158,7 @@ const HuntCard = ({
               </span>
             )}
             <span className="text-neutral-500">
-              {hunt.events_analyzed.toLocaleString()} events
+              {(hunt.events_analyzed ?? 0).toLocaleString()} events
             </span>
           </div>
         </div>
@@ -314,7 +305,7 @@ export const ThreatHuntingPanel = ({
     criticalFindings: hunts.reduce((sum, h) => 
       sum + h.findings.filter(f => f.severity === 'critical' || f.severity === 'high').length, 0
     ),
-    eventsAnalyzed: hunts.reduce((sum, h) => sum + h.events_analyzed, 0),
+    eventsAnalyzed: hunts.reduce((sum, h) => sum + (h.events_analyzed ?? 0), 0),
   }), [hunts]);
   
   return (
@@ -350,16 +341,16 @@ export const ThreatHuntingPanel = ({
             <div className="text-xs text-neutral-500">Total Hunts</div>
           </div>
           <div className="p-3 bg-neutral-800/50 border border-neutral-700 rounded-lg">
-            <div className="text-2xl font-bold text-cyan-400">{metrics.total_findings}</div>
+            <div className="text-2xl font-bold text-cyan-400">{metrics.total_findings ?? 0}</div>
             <div className="text-xs text-neutral-500">Findings</div>
           </div>
           <div className="p-3 bg-neutral-800/50 border border-neutral-700 rounded-lg">
-            <div className="text-2xl font-bold text-green-400">{metrics.detection_rate}%</div>
+            <div className="text-2xl font-bold text-green-400">{metrics.detection_rate ?? 0}%</div>
             <div className="text-xs text-neutral-500">Detection Rate</div>
           </div>
           <div className="p-3 bg-neutral-800/50 border border-neutral-700 rounded-lg">
             <div className="text-2xl font-bold text-purple-400">
-              {(metrics.events_analyzed / 1000000).toFixed(1)}M
+              {((metrics.events_analyzed ?? 0) / 1000000).toFixed(1)}M
             </div>
             <div className="text-xs text-neutral-500">Events Analyzed</div>
           </div>

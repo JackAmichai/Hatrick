@@ -17,7 +17,7 @@ export { AgentMetricsPanel } from './AgentMetricsPanel';
 export { ChainOfThoughtPanel } from './ChainOfThoughtPanel';
 
 // Feature 7: Collaboration Graph
-export { CollaborationGraph } from './CollaborationGraph';
+export { CollaborationGraphPanel as CollaborationGraph } from './CollaborationGraph';
 
 // Feature 8: Hierarchical Coordination
 export { HierarchyPanel } from './HierarchyPanel';

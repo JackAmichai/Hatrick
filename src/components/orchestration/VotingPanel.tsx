@@ -2,10 +2,10 @@
  * Feature 1: Multi-Agent Voting Panel
  * Displays voting process with confidence scores and weighted scoring
  */
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Vote, TrendingUp, Award, Users, ChevronDown, ChevronUp } from 'lucide-react';
-import type { VoteResults, AgentProposal, VoteBreakdown } from '../../types/orchestration';
+import type { VoteResults, AgentProposal } from '../../types/orchestration';
 
 interface VotingPanelProps {
   voteResults: VoteResults | null;

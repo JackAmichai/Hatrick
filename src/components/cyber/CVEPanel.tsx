@@ -35,7 +35,7 @@ const exploitabilityConfig: Record<Exploitability, { color: string; label: strin
   unproven: { color: 'text-neutral-400 bg-neutral-500/20', label: 'No Known Exploit' },
 };
 
-const CVECard = ({ cve, onClick }: { cve: CVEEntry; onClick?: () => void }) => {
+const CVECard = ({ cve, onClick: _onClick }: { cve: CVEEntry; onClick?: () => void }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const sevConfig = severityConfig[cve.severity];
   const expConfig = exploitabilityConfig[cve.exploitability];

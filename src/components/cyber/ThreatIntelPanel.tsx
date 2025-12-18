@@ -18,8 +18,7 @@ import {
   Calendar,
   Activity,
   ChevronDown,
-  ChevronRight,
-  ExternalLink
+  ChevronRight
 } from 'lucide-react';
 import type { 
   ThreatIndicator, 
@@ -287,8 +286,8 @@ export const ThreatIntelPanel = ({
   indicators, 
   campaigns, 
   summary,
-  onIndicatorClick,
-  onCampaignClick 
+  onIndicatorClick: _onIndicatorClick,
+  onCampaignClick: _onCampaignClick 
 }: ThreatIntelPanelProps) => {
   const [activeTab, setActiveTab] = useState<'indicators' | 'campaigns'>('indicators');
   const [searchQuery, setSearchQuery] = useState('');

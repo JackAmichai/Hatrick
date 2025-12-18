@@ -7,16 +7,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Network, 
   Shield,
-  Server,
-  Wifi,
-  Globe,
   Lock,
-  Unlock,
   AlertTriangle,
   CheckCircle,
   XCircle,
   ArrowRight,
-  ArrowLeftRight,
   ChevronDown,
   ChevronRight,
   Eye
@@ -37,6 +32,8 @@ interface NetworkSegmentationPanelProps {
 }
 
 const zoneTypeColors: Record<ZoneType, string> = {
+  trust: 'text-cyan-400 bg-cyan-500/20 border-cyan-500/30',
+  untrust: 'text-red-400 bg-red-500/20 border-red-500/30',
   dmz: 'text-amber-400 bg-amber-500/20 border-amber-500/30',
   internal: 'text-green-400 bg-green-500/20 border-green-500/30',
   external: 'text-red-400 bg-red-500/20 border-red-500/30',
@@ -46,6 +43,7 @@ const zoneTypeColors: Record<ZoneType, string> = {
 };
 
 const trustLevelColors: Record<TrustLevel, string> = {
+  none: 'text-neutral-400',
   untrusted: 'text-red-400',
   low: 'text-orange-400',
   medium: 'text-yellow-400',
@@ -56,13 +54,14 @@ const trustLevelColors: Record<TrustLevel, string> = {
 const actionColors: Record<PolicyAction, string> = {
   allow: 'text-green-400 bg-green-500/20',
   deny: 'text-red-400 bg-red-500/20',
+  monitor: 'text-purple-400 bg-purple-500/20',
   log: 'text-blue-400 bg-blue-500/20',
   alert: 'text-amber-400 bg-amber-500/20',
 };
 
 const ZoneCard = ({ 
   zone, 
-  onClick 
+  onClick: _onClick 
 }: { 
   zone: NetworkZone; 
   onClick?: () => void;
@@ -95,13 +94,13 @@ const ZoneCard = ({
           </div>
           
           <h4 className="font-medium text-white">{zone.name}</h4>
-          <p className="text-sm text-neutral-400">{zone.description}</p>
+          <p className="text-sm text-neutral-400">{zone.description ?? ''}</p>
           
           {/* Quick stats */}
           <div className="flex gap-4 mt-2 text-xs text-neutral-500">
-            <span>{zone.subnets.length} subnets</span>
-            <span>{zone.hosts} hosts</span>
-            <span>{zone.services.length} services</span>
+            <span>{zone.subnets?.length ?? 0} subnets</span>
+            <span>{zone.hosts ?? 0} hosts</span>
+            <span>{zone.services?.length ?? 0} services</span>
           </div>
         </div>
         
@@ -125,7 +124,7 @@ const ZoneCard = ({
             <div>
               <h5 className="text-sm font-medium text-white mb-2">Subnets</h5>
               <div className="flex flex-wrap gap-1">
-                {zone.subnets.map(subnet => (
+                {(zone.subnets ?? []).map(subnet => (
                   <code key={subnet} className="px-2 py-0.5 bg-neutral-700 text-neutral-300 rounded text-xs">
                     {subnet}
                   </code>
@@ -134,11 +133,11 @@ const ZoneCard = ({
             </div>
             
             {/* Services */}
-            {zone.services.length > 0 && (
+            {(zone.services?.length ?? 0) > 0 && (
               <div>
                 <h5 className="text-sm font-medium text-white mb-2">Services</h5>
                 <div className="flex flex-wrap gap-1">
-                  {zone.services.map(service => (
+                  {(zone.services ?? []).map(service => (
                     <span key={service} className="px-2 py-0.5 bg-cyan-500/20 text-cyan-400 rounded text-xs">
                       {service}
                     </span>
@@ -211,23 +210,23 @@ const PolicyRow = ({
       
       {/* Services/Ports */}
       <div className="flex-1 flex gap-1 justify-center">
-        {policy.services.slice(0, 3).map(svc => (
+        {(policy.services ?? []).slice(0, 3).map(svc => (
           <span key={svc} className="px-1.5 py-0.5 bg-neutral-700 text-neutral-300 rounded text-xs">
             {svc}
           </span>
         ))}
-        {policy.services.length > 3 && (
-          <span className="text-xs text-neutral-500">+{policy.services.length - 3}</span>
+        {(policy.services?.length ?? 0) > 3 && (
+          <span className="text-xs text-neutral-500">+{(policy.services?.length ?? 0) - 3}</span>
         )}
       </div>
       
       {/* Status indicators */}
       <div className="flex items-center gap-2">
         {policy.is_logged && (
-          <Eye className="w-4 h-4 text-blue-400" title="Logged" />
+          <Eye className="w-4 h-4 text-blue-400" aria-label="Logged" />
         )}
         {!policy.is_enabled && (
-          <Lock className="w-4 h-4 text-neutral-500" title="Disabled" />
+          <Lock className="w-4 h-4 text-neutral-500" aria-label="Disabled" />
         )}
       </div>
     </motion.div>
@@ -265,7 +264,7 @@ export const NetworkSegmentationPanel = ({
       allowPolicies: data.policies.filter(p => p.action === 'allow').length,
       denyPolicies: data.policies.filter(p => p.action === 'deny').length,
       compliantZones: data.zones.filter(z => z.compliance_status).length,
-      totalHosts: data.zones.reduce((sum, z) => sum + z.hosts, 0),
+      totalHosts: data.zones.reduce((sum, z) => sum + (z.hosts ?? 0), 0),
     };
   }, [data]);
   

@@ -2,7 +2,7 @@
  * Feature 16: Attack Tree Visualization
  * Interactive tree showing attack paths, probabilities, and mitigations
  */
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   GitBranch, 

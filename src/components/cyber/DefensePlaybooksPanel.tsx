@@ -7,19 +7,16 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   BookOpen, 
   Play,
-  Pause,
   CheckCircle,
   XCircle,
   Clock,
-  AlertTriangle,
   ListChecks,
   Users,
   Shield,
   Zap,
   ChevronDown,
   ChevronRight,
-  ArrowRight,
-  RotateCcw
+  ArrowRight
 } from 'lucide-react';
 import type { 
   PlaybookType,
@@ -108,7 +105,7 @@ const PlaybookStepRow = ({ step, index }: { step: PlaybookStep; index: number })
 const PlaybookCard = ({ 
   playbook, 
   onExecute,
-  onClick 
+  onClick: _onClick 
 }: { 
   playbook: DefensePlaybook; 
   onExecute?: () => void;
@@ -271,7 +268,7 @@ export const DefensePlaybooksPanel = ({
   executions,
   onPlaybookClick,
   onExecutePlaybook,
-  onStopExecution 
+  onStopExecution: _onStopExecution 
 }: DefensePlaybooksPanelProps) => {
   const [typeFilter, setTypeFilter] = useState<PlaybookType | 'ALL'>('ALL');
   const [statusFilter, setStatusFilter] = useState<PlaybookStatus | 'ALL'>('ALL');

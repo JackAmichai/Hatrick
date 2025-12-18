@@ -14,9 +14,7 @@ import {
   ChevronDown,
   ChevronRight,
   FileText,
-  Calendar,
-  TrendingUp,
-  TrendingDown
+  Calendar
 } from 'lucide-react';
 import type { 
   ComplianceScore, 
@@ -121,11 +119,9 @@ const ScoreGauge = ({ score, framework }: { score: ComplianceScore; framework: C
 };
 
 const ControlRow = ({ 
-  control, 
-  onClick 
+  control
 }: { 
   control: ComplianceControl; 
-  onClick?: () => void;
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const config = statusConfig[control.status];
@@ -232,7 +228,7 @@ const ControlRow = ({
 export const ComplianceDashboard = ({ 
   scores, 
   controls,
-  onControlClick 
+  onControlClick: _onControlClick 
 }: ComplianceDashboardProps) => {
   const [selectedFramework, setSelectedFramework] = useState<ComplianceFramework | 'ALL'>('ALL');
   const [statusFilter, setStatusFilter] = useState<ComplianceStatus | 'ALL'>('ALL');
@@ -357,7 +353,6 @@ export const ComplianceDashboard = ({
             <ControlRow
               key={control.id}
               control={control}
-              onClick={() => onControlClick?.(control.id)}
             />
           ))
         ) : (

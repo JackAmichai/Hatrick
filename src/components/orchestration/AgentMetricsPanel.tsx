@@ -4,7 +4,7 @@
  */
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Award, Target, TrendingUp, Clock, Cpu, DollarSign, Users } from 'lucide-react';
+import { Award, Target, TrendingUp, Users } from 'lucide-react';
 import type { AgentMetrics } from '../../types/orchestration';
 
 interface AgentMetricsPanelProps {

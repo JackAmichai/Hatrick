@@ -7,19 +7,12 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Radio, 
   Activity,
-  Globe,
   Server,
-  Zap,
-  AlertTriangle,
   Play,
   Pause,
   Square,
-  RefreshCw,
-  Eye,
-  EyeOff,
   ChevronDown,
   ChevronRight,
-  Clock,
   Send,
   Download
 } from 'lucide-react';
@@ -52,11 +45,15 @@ const protocolColors: Record<C2Protocol, string> = {
 const statusColors: Record<C2Status, string> = {
   active: 'text-green-400 bg-green-500/20 border-green-500/30',
   dormant: 'text-amber-400 bg-amber-500/20 border-amber-500/30',
+  lost: 'text-neutral-500 bg-neutral-600/20 border-neutral-600/30',
   detected: 'text-red-400 bg-red-500/20 border-red-500/30',
   blocked: 'text-neutral-400 bg-neutral-500/20 border-neutral-500/30',
 };
 
 const beaconStatusColors: Record<BeaconStatus, string> = {
+  active: 'text-green-400',
+  dormant: 'text-amber-400',
+  lost: 'text-neutral-400',
   alive: 'text-green-400',
   sleeping: 'text-amber-400',
   dead: 'text-neutral-400',

@@ -100,12 +100,15 @@ export type {
   IncidentSeverity,
   IncidentStatus,
   IncidentEvent,
+  Incident,
+  TimelineEvent,
   IncidentTimelineData,
   
   // Feature 23
   ComplianceStatus,
   ComplianceControl,
   ComplianceFramework,
+  ComplianceScore,
   ComplianceOverview,
   
   // Feature 24
@@ -122,18 +125,21 @@ export type {
   RiskCategory,
   RiskTrend,
   RiskScore,
+  RiskFactor,
   RiskMatrixData,
   
   // Feature 28
   AssetType,
   ExposureLevel,
   AttackSurfaceAsset,
+  AttackSurface,
   AttackSurfaceMetrics,
   
   // Feature 29
   CredentialType,
   CredentialHealth,
   Credential,
+  StoredCredential,
   VaultMetrics,
   
   // Feature 30
@@ -142,17 +148,20 @@ export type {
   BeaconStatus,
   C2Channel,
   C2Beacon,
+  C2Command,
   
   // Feature 31
   CampaignStatus,
   PhishingCampaign,
   PhishingTarget,
+  PhishingStats,
   PhishingMetrics,
   
   // Feature 32
   MovementTechnique,
   NodeType,
   LateralMovementPath,
+  LateralMovement,
   MovementNode,
   MovementMetrics,
   
@@ -161,7 +170,9 @@ export type {
   TrustLevel,
   PolicyAction,
   NetworkZone,
+  NetworkSegment,
   SegmentationPolicy,
+  SegmentationMatrix,
   NetworkSegmentationData,
   
   // Feature 34
@@ -179,4 +190,6 @@ export type {
   ThreatHunt,
   HuntFinding,
   HuntMetrics,
+  HuntingHypothesis,
+  HuntingResult,
 } from '../../types/cyber';

@@ -3,9 +3,8 @@
  * Network visualization showing which agents work well together
  */
 import { useEffect, useRef, useState } from 'react';
-import { motion } from 'framer-motion';
 import { Network, Users, TrendingUp } from 'lucide-react';
-import type { CollaborationGraph, CollaborationNode, CollaborationEdge } from '../../types/orchestration';
+import type { CollaborationGraph, CollaborationNode } from '../../types/orchestration';
 
 interface CollaborationGraphPanelProps {
   graph: CollaborationGraph | null;
@@ -14,7 +13,7 @@ interface CollaborationGraphPanelProps {
 // Simple canvas-based network visualization
 const NetworkCanvas = ({ graph }: { graph: CollaborationGraph }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [hoveredNode, setHoveredNode] = useState<CollaborationNode | null>(null);
+  const [hoveredNode, _setHoveredNode] = useState<CollaborationNode | null>(null);
   
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -124,10 +123,6 @@ export const CollaborationGraphPanel = ({ graph }: CollaborationGraphPanelProps)
   }
   
   // Calculate stats
-  const totalEdges = graph.edges.length;
-  const avgWeight = totalEdges > 0 
-    ? graph.edges.reduce((sum, e) => sum + e.weight, 0) / totalEdges 
-    : 0;
   const strongConnections = graph.edges.filter(e => e.weight > 0.7).length;
   
   return (

@@ -7,24 +7,18 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Key, 
   Lock,
-  Unlock,
   Eye,
   EyeOff,
   Shield,
   AlertTriangle,
-  Clock,
   Users,
   Database,
-  Cloud,
   Server,
   Copy,
   RefreshCw,
-  Plus,
   Trash2,
-  Edit,
   ChevronDown,
-  ChevronRight,
-  Calendar
+  ChevronRight
 } from 'lucide-react';
 import type { 
   CredentialType,
@@ -105,12 +99,10 @@ const formatExpiresIn = (date: string): string => {
 
 const CredentialCard = ({ 
   credential, 
-  onClick,
   onRotate,
   onRevoke 
 }: { 
   credential: Credential; 
-  onClick?: () => void;
   onRotate?: () => void;
   onRevoke?: () => void;
 }) => {
@@ -160,7 +152,7 @@ const CredentialCard = ({
           
           {/* Quick info */}
           <div className="flex gap-4 mt-2 text-xs text-neutral-500">
-            <span>Last used: {formatTimeAgo(credential.last_used)}</span>
+            <span>Last used: {credential.last_used ? formatTimeAgo(credential.last_used) : 'Never'}</span>
             {credential.expires_at && (
               <span className={credential.health === 'expiring' ? 'text-amber-400' : ''}>
                 Expires: {formatExpiresIn(credential.expires_at)}
@@ -283,10 +275,11 @@ const CredentialCard = ({
 export const CredentialVaultPanel = ({ 
   credentials, 
   metrics,
-  onCredentialClick,
+  onCredentialClick: _onCredentialClick,
   onRotate,
   onRevoke 
 }: CredentialVaultPanelProps) => {
+  void _onCredentialClick; // Intentionally unused - kept for API compatibility
   const [typeFilter, setTypeFilter] = useState<CredentialType | 'ALL'>('ALL');
   const [healthFilter, setHealthFilter] = useState<CredentialHealth | 'ALL'>('ALL');
   const [searchQuery, setSearchQuery] = useState('');
@@ -402,7 +395,6 @@ export const CredentialVaultPanel = ({
             <CredentialCard
               key={credential.id}
               credential={credential}
-              onClick={() => onCredentialClick?.(credential.id)}
               onRotate={onRotate ? () => onRotate(credential.id) : undefined}
               onRevoke={onRevoke ? () => onRevoke(credential.id) : undefined}
             />

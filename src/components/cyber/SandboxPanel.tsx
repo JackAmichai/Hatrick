@@ -7,25 +7,18 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Box, 
   Play,
-  Pause,
-  Square,
-  Terminal,
   FileText,
   Globe,
   Database,
   Clock,
-  AlertTriangle,
   CheckCircle,
   XCircle,
   Activity,
   Download,
   Upload,
-  RefreshCw,
   ChevronDown,
   ChevronRight,
-  Eye,
-  Shield,
-  Zap
+  Shield
 } from 'lucide-react';
 import type { 
   SandboxResult, 
@@ -139,11 +132,9 @@ const BehaviorTag = ({ behavior }: { behavior: SandboxBehavior }) => {
 
 const SandboxResultCard = ({ 
   result, 
-  onView,
   onExport 
 }: { 
   result: SandboxResult; 
-  onView?: () => void;
   onExport?: () => void;
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -344,7 +335,7 @@ const SandboxResultCard = ({
 export const SandboxPanel = ({ 
   results, 
   onSubmitSample,
-  onViewResult,
+  onViewResult: _onViewResult,
   onExportReport 
 }: SandboxPanelProps) => {
   const [statusFilter, setStatusFilter] = useState<SandboxStatus | 'ALL'>('ALL');
@@ -455,7 +446,7 @@ export const SandboxPanel = ({
       <div className="flex flex-wrap items-center gap-3 mb-4">
         <select
           value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value as any)}
+          onChange={(e) => setStatusFilter(e.target.value as SandboxStatus | 'ALL')}
           className="px-3 py-2 bg-neutral-800 border border-neutral-700 rounded-lg text-white text-sm focus:border-cyan-500 outline-none"
         >
           <option value="ALL">All Statuses</option>
@@ -468,7 +459,7 @@ export const SandboxPanel = ({
         
         <select
           value={threatFilter}
-          onChange={(e) => setThreatFilter(e.target.value as any)}
+          onChange={(e) => setThreatFilter(e.target.value as 'ALL' | 'clean' | 'suspicious' | 'malicious')}
           className="px-3 py-2 bg-neutral-800 border border-neutral-700 rounded-lg text-white text-sm focus:border-cyan-500 outline-none"
         >
           <option value="ALL">All Threats</option>
@@ -485,7 +476,6 @@ export const SandboxPanel = ({
             <SandboxResultCard
               key={result.id}
               result={result}
-              onView={onViewResult ? () => onViewResult(result.id) : undefined}
               onExport={onExportReport ? () => onExportReport(result.id) : undefined}
             />
           ))

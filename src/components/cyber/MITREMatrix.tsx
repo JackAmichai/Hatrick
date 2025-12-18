@@ -59,7 +59,7 @@ const tacticColors: Record<string, string> = {
 const TechniqueCard = ({ 
   technique, 
   isHighlighted,
-  onClick 
+  onClick: _onClick 
 }: { 
   technique: MITRETechnique;
   isHighlighted: boolean;

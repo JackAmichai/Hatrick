@@ -6,12 +6,10 @@ import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { 
   Target, 
-  AlertTriangle,
   TrendingUp,
   TrendingDown,
   Minus,
   Shield,
-  Zap,
   Activity
 } from 'lucide-react';
 import type { 

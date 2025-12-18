@@ -12,15 +12,12 @@ import {
   Network,
   Terminal,
   Hash,
-  Calendar,
   Clock,
   Search,
-  Filter,
   ChevronDown,
   ChevronRight,
   AlertTriangle,
   CheckCircle,
-  XCircle,
   Download,
   Eye
 } from 'lucide-react';
@@ -65,7 +62,7 @@ const formatBytes = (bytes: number): string => {
 
 const ArtifactCard = ({ 
   artifact, 
-  onClick,
+  onClick: _onClick,
   onExport 
 }: { 
   artifact: ForensicArtifact; 

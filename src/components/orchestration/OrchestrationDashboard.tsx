@@ -27,7 +27,7 @@ import { VotingPanel } from './VotingPanel';
 import { AgentDebatePanel } from './AgentDebatePanel';
 import { ChainOfThoughtPanel } from './ChainOfThoughtPanel';
 import { AgentMetricsPanel } from './AgentMetricsPanel';
-import { CollaborationGraph } from './CollaborationGraph';
+import { CollaborationGraphPanel as CollaborationGraph } from './CollaborationGraph';
 import { HierarchyPanel } from './HierarchyPanel';
 import { EnsemblePanel } from './EnsemblePanel';
 import { ReflectionPanel } from './ReflectionPanel';
@@ -92,7 +92,6 @@ interface OrchestrationDashboardProps {
   
   // Feature 10: Ensemble
   ensembleDecision?: EnsembleDecision | null;
-  proposals?: Array<{ agent_id: string; confidence: number; estimated_impact: number }>;
   
   // Feature 11: Reflection
   agentReflection?: AgentReflection | null;
@@ -125,7 +124,6 @@ export const OrchestrationDashboard = ({
   collaborationGraph = null,
   hierarchyCoordination = null,
   ensembleDecision = null,
-  proposals = [],
   agentReflection = null,
   executionStatus = null,
   messageBusLog = null,
@@ -215,19 +213,19 @@ export const OrchestrationDashboard = ({
               transition={{ duration: 0.2 }}
             >
               {activeTab === 'voting' && (
-                <VotingPanel voteResults={voteResults} />
+                <VotingPanel voteResults={voteResults} isVoting={false} />
               )}
               
               {activeTab === 'debate' && (
-                <AgentDebatePanel rounds={debateRounds} />
+                <AgentDebatePanel debateRounds={debateRounds || []} isDebating={false} />
               )}
               
               {activeTab === 'reasoning' && (
-                <ChainOfThoughtPanel chainOfThought={chainOfThought} />
+                <ChainOfThoughtPanel chainOfThought={chainOfThought} isThinking={false} />
               )}
               
               {activeTab === 'metrics' && (
-                <AgentMetricsPanel agents={agentMetrics} />
+                <AgentMetricsPanel agents={agentMetrics ? agentMetrics.reduce((acc, m) => ({ ...acc, [m.agent_id]: m }), {} as Record<string, AgentMetrics>) : {}} />
               )}
               
               {activeTab === 'collaboration' && (
@@ -235,18 +233,17 @@ export const OrchestrationDashboard = ({
               )}
               
               {activeTab === 'hierarchy' && (
-                <HierarchyPanel coordination={hierarchyCoordination} />
+                <HierarchyPanel redHierarchy={hierarchyCoordination} blueHierarchy={null} />
               )}
               
               {activeTab === 'ensemble' && (
                 <EnsemblePanel 
-                  decision={ensembleDecision} 
-                  proposals={proposals}
+                  ensemble={ensembleDecision} 
                 />
               )}
               
               {activeTab === 'reflection' && (
-                <ReflectionPanel reflection={agentReflection} />
+                <ReflectionPanel reflection={agentReflection} isReflecting={false} />
               )}
               
               {activeTab === 'execution' && (

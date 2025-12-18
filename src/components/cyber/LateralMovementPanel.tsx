@@ -7,16 +7,12 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   GitBranch, 
   Server,
-  User,
   Key,
   Shield,
   AlertTriangle,
-  Clock,
   ArrowRight,
-  Circle,
   ChevronDown,
   ChevronRight,
-  Eye,
   Zap
 } from 'lucide-react';
 import type { 
@@ -109,7 +105,8 @@ const PathVisualization = ({ path }: { path: LateralMovementPath }) => {
 
 const PathCard = ({ 
   path, 
-  onClick 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  onClick: _onClick 
 }: { 
   path: LateralMovementPath; 
   onClick?: () => void;
@@ -247,8 +244,9 @@ const PathCard = ({
 export const LateralMovementPanel = ({ 
   paths, 
   metrics,
-  onPathClick,
-  onNodeClick 
+  onPathClick: _onPathClick,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  onNodeClick: _onNodeClick 
 }: LateralMovementPanelProps) => {
   const [riskFilter, setRiskFilter] = useState<'ALL' | 'high' | 'medium' | 'low'>('ALL');
   const [activeOnly, setActiveOnly] = useState(false);
@@ -337,7 +335,7 @@ export const LateralMovementPanel = ({
       <div className="flex flex-wrap items-center gap-3 mb-4">
         <select
           value={riskFilter}
-          onChange={(e) => setRiskFilter(e.target.value as any)}
+          onChange={(e) => setRiskFilter(e.target.value as 'ALL' | 'high' | 'medium' | 'low')}
           className="px-3 py-2 bg-neutral-800 border border-neutral-700 rounded-lg text-white text-sm focus:border-cyan-500 outline-none"
         >
           <option value="ALL">All Risk Levels</option>
@@ -364,7 +362,7 @@ export const LateralMovementPanel = ({
             <PathCard
               key={path.id}
               path={path}
-              onClick={() => onPathClick?.(path.id)}
+              onClick={() => _onPathClick?.(path.id)}
             />
           ))
         ) : (

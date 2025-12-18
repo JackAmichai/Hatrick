@@ -12,7 +12,6 @@ import {
   Target,
   Network,
   Search,
-  FileText,
   BookOpen,
   Key,
   Mail,
@@ -27,6 +26,32 @@ import {
   ChevronRight,
   Menu
 } from 'lucide-react';
+
+// Import types
+import type {
+  AttackTree,
+  CVEEntry,
+  MITRETechnique,
+  ThreatIndicator,
+  ThreatCampaign,
+  ThreatIntelSummary,
+  ScanResult,
+  Incident,
+  ComplianceScore,
+  ComplianceControl,
+  ForensicArtifact,
+  SandboxResult,
+  RiskScore,
+  AttackSurfaceAsset,
+  Credential,
+  C2Channel,
+  C2Beacon,
+  PhishingCampaign,
+  LateralMovementPath,
+  NetworkSegmentationData,
+  DefensePlaybook,
+  ThreatHunt,
+} from '../../types/cyber';
 
 // Import all cyber components
 import { AttackTreeVisualizer } from './AttackTreeVisualizer';
@@ -83,25 +108,25 @@ const categories = [
 
 // Demo data generators (in real app, would come from backend)
 const generateDemoData = () => ({
-  attackTrees: [],
-  cves: [],
-  mitreTechniques: [],
-  threatIntel: { indicators: [], campaigns: [], summary: null },
-  vulnScanResults: [],
-  incidents: [],
-  compliance: null,
-  forensicArtifacts: [],
-  sandboxResults: [],
-  riskScores: [],
-  attackSurfaceAssets: [],
-  credentials: [],
-  c2Channels: [],
-  c2Beacons: [],
-  phishingCampaigns: [],
-  lateralMovementPaths: [],
-  networkSegmentation: null,
-  playbooks: [],
-  threatHunts: [],
+  attackTrees: [] as AttackTree[],
+  cves: [] as CVEEntry[],
+  mitreTechniques: [] as MITRETechnique[],
+  threatIntel: { indicators: [] as ThreatIndicator[], campaigns: [] as ThreatCampaign[], summary: null as ThreatIntelSummary | null },
+  vulnScanResults: [] as ScanResult[],
+  incidents: [] as Incident[],
+  compliance: { scores: [] as ComplianceScore[], controls: [] as ComplianceControl[] },
+  forensicArtifacts: [] as ForensicArtifact[],
+  sandboxResults: [] as SandboxResult[],
+  riskScores: [] as RiskScore[],
+  attackSurfaceAssets: [] as AttackSurfaceAsset[],
+  credentials: [] as Credential[],
+  c2Channels: [] as C2Channel[],
+  c2Beacons: [] as C2Beacon[],
+  phishingCampaigns: [] as PhishingCampaign[],
+  lateralMovementPaths: [] as LateralMovementPath[],
+  networkSegmentation: null as NetworkSegmentationData | null,
+  playbooks: [] as DefensePlaybook[],
+  threatHunts: [] as ThreatHunt[],
 });
 
 interface CyberDashboardProps {
@@ -173,7 +198,7 @@ export const CyberDashboard = ({ className = '' }: CyberDashboardProps) => {
         );
         
       case 'attack-tree':
-        return <AttackTreeVisualizer trees={data.attackTrees} />;
+        return <AttackTreeVisualizer tree={data.attackTrees?.[0] || null} />;
         
       case 'cve':
         return <CVEPanel cves={data.cves} />;
@@ -191,13 +216,13 @@ export const CyberDashboard = ({ className = '' }: CyberDashboardProps) => {
         );
         
       case 'vuln-scanner':
-        return <VulnerabilityScanner results={data.vulnScanResults} />;
+        return <VulnerabilityScanner targets={[]} results={data.vulnScanResults} stats={null} />;
         
       case 'incident-timeline':
-        return <IncidentTimeline incidents={data.incidents} />;
+        return <IncidentTimeline incidents={data.incidents} selectedIncident={null} />;
         
       case 'compliance':
-        return <ComplianceDashboard overview={data.compliance} />;
+        return <ComplianceDashboard scores={data.compliance?.scores || []} controls={[]} />;
         
       case 'forensics':
         return (
