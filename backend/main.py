@@ -580,12 +580,33 @@ async def websocket_endpoint(websocket: WebSocket):
                 ]
                 current_entropy = random.choice(entropy_factors)
                 
-                # Enhanced scenario with real environment data
-                scenario_context = f"""{base_scenario} (Condition: {current_entropy})
-Target IP: {env_report['target_ip']}
-Open Ports: {', '.join([f"{port}/{service}" for port, service in env_report['open_ports'].items()])}
-Vulnerabilities: {len(env_report['vulnerabilities'])} detected
-Network: Firewall {env_report['network_info']['firewall']}, IDS/IPS {env_report['network_info']['ids_ips']}"""
+                # Format vulnerabilities for display
+                vuln_details = ""
+                if env_report['vulnerabilities']:
+                    for vuln in env_report['vulnerabilities']:
+                        vuln_details += f"\n  - {vuln.get('type', 'Unknown')}: {vuln.get('description', 'No description')}"
+                        if vuln.get('cve'):
+                            vuln_details += f" ({vuln.get('cve')})"
+                
+                # Enhanced scenario with real environment data and vulnerability context
+                scenario_context = f"""{base_scenario}
+                
+🎯 TARGET ENVIRONMENT:
+- IP Address: {env_report['target_ip']}
+- Open Ports: {', '.join([f"{port}/{service}" for port, service in env_report['open_ports'].items()])}
+- Network Status: Firewall {env_report['network_info']['firewall']}, IDS/IPS {env_report['network_info']['ids_ips']}
+- Condition: {current_entropy}
+
+⚠️ DETECTED VULNERABILITIES ({len(env_report['vulnerabilities'])} found):{vuln_details}
+
+Analyze this environment and identify the best attack vector based on the detected vulnerabilities."""
+
+                # Broadcast mission start with vulnerability info
+                await manager.broadcast({
+                    "type": "NEW_MESSAGE", 
+                    "agent": "SYSTEM", 
+                    "text": f"🎯 Mission {mission_id} initialized. Target: {env_report['target_ip']}. {len(env_report['vulnerabilities'])} vulnerabilities detected."
+                })
 
                 # --- RED TEAM LOOP ---
                 print("🔴 Starting RED TEAM turn...")

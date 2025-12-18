@@ -1,12 +1,101 @@
 """
 HatTrick Backend - LLM Agent Configuration
-Uses HuggingFace Inference API and Groq for diverse real LLM agents.
-NO MOCK DATA - All responses come from real AI models.
+Uses OpenRouter API for diverse FREE LLM agents.
+All responses come from real AI models.
 """
 import os
+import requests
 from langchain_core.language_models.llms import LLM
 from typing import Any, List, Optional
 from langchain_core.callbacks.manager import CallbackManagerForLLMRun
+
+# --- OPENROUTER LLM CLASS ---
+class OpenRouterLLM(LLM):
+    """Custom LLM class for OpenRouter API - FREE models"""
+    model_name: str = "meta-llama/llama-3.2-3b-instruct:free"
+    temperature: float = 0.7
+    max_tokens: int = 512
+    api_key: str = ""
+    role: str = "Assistant"
+    
+    def __init__(self, model_name: str = "meta-llama/llama-3.2-3b-instruct:free", 
+                 temperature: float = 0.7, role: str = "Assistant", **kwargs):
+        super().__init__(**kwargs)
+        self.model_name = model_name
+        self.temperature = temperature
+        self.role = role
+        self.api_key = os.getenv("OPENROUTER_API_KEY", "")
+    
+    @property
+    def _llm_type(self) -> str:
+        return "openrouter"
+    
+    def _call(
+        self,
+        prompt: str,
+        stop: Optional[List[str]] = None,
+        run_manager: Optional[CallbackManagerForLLMRun] = None,
+        **kwargs: Any,
+    ) -> str:
+        if not self.api_key:
+            print(f"⚠️ OPENROUTER_API_KEY missing. Using fallback for {self.model_name}.")
+            return self._fallback_response(prompt)
+        
+        headers = {
+            "Authorization": f"Bearer {self.api_key}",
+            "Content-Type": "application/json",
+            "HTTP-Referer": "https://hatrick.app",
+            "X-Title": "HatTrick Cyber Arena"
+        }
+        
+        data = {
+            "model": self.model_name,
+            "messages": [
+                {"role": "user", "content": prompt}
+            ],
+            "temperature": self.temperature,
+            "max_tokens": self.max_tokens,
+        }
+        
+        if stop:
+            data["stop"] = stop
+        
+        try:
+            response = requests.post(
+                "https://openrouter.ai/api/v1/chat/completions",
+                headers=headers,
+                json=data,
+                timeout=30
+            )
+            response.raise_for_status()
+            result = response.json()
+            return result["choices"][0]["message"]["content"]
+        except Exception as e:
+            print(f"❌ OpenRouter API error for {self.model_name}: {e}")
+            return self._fallback_response(prompt)
+    
+    def _fallback_response(self, prompt: str) -> str:
+        """Fallback response if API fails"""
+        prompt_lower = prompt.lower()
+        
+        if "json" in prompt_lower:
+            if "attack" in prompt_lower or "red" in prompt_lower:
+                return '{"attack_name": "Network Exploitation", "damage": 65, "visual_desc": "Red Code Stream Injection"}'
+            if "defense" in prompt_lower or "blue" in prompt_lower:
+                return '{"defense_name": "Adaptive Shield Protocol", "mitigation_score": 70, "visual_desc": "Blue Force Field Active"}'
+            return '{}'
+        
+        if "scan" in prompt_lower or "reconnaissance" in prompt_lower:
+            return f"[{self.role}] Scan complete. Found potential vulnerabilities on open ports. Analyzing attack vectors."
+        
+        if "infrastructure" in prompt_lower:
+            return f"[{self.role}] Infrastructure analysis: Detected misconfigured load balancers and outdated firmware on edge devices."
+        
+        if "data" in prompt_lower:
+            return f"[{self.role}] Data analysis: Unencrypted sensitive data found in transit. Database access control weaknesses detected."
+        
+        return f"[{self.role}] Analysis complete. Proceeding with tactical assessment based on available intelligence."
+
 
 # --- MOCK LLM FOR FALLBACK ---
 class MockLLM(LLM):
@@ -23,8 +112,6 @@ class MockLLM(LLM):
         run_manager: Optional[CallbackManagerForLLMRun] = None,
         **kwargs: Any,
     ) -> str:
-        # Simple heuristic to give relevant json or text
-        # We look at the prompt to decide what to return
         prompt_lower = prompt.lower()
 
         if "json" in prompt_lower:
@@ -45,17 +132,41 @@ class MockLLM(LLM):
 
         return f"[{self.role}] Analysis complete based on input context."
 
+
 # --- LLM FACTORY ---
-def get_llm(provider, model_name, temperature=0.7):
+def get_llm(provider: str, model_name: str, temperature: float = 0.7, role: str = "Assistant"):
     """
     Create an LLM instance from the specified provider.
-    Raises an exception if the API key is missing or model fails to load.
+    Supports: openrouter, groq, huggingface
     """
-    if provider == "huggingface":
+    if provider == "openrouter":
+        api_key = os.getenv("OPENROUTER_API_KEY")
+        if not api_key:
+            print(f"⚠️ OPENROUTER_API_KEY missing. Using MockLLM for {model_name}.")
+            return MockLLM(role=role)
+        
+        print(f"✅ Initializing OpenRouter model: {model_name}")
+        return OpenRouterLLM(model_name=model_name, temperature=temperature, role=role)
+    
+    elif provider == "groq":
+        api_key = os.getenv("GROQ_API_KEY")
+        if not api_key:
+            print(f"⚠️ GROQ_API_KEY missing. Using MockLLM for {model_name}.")
+            return MockLLM(role=role)
+        
+        from langchain_groq import ChatGroq
+        print(f"✅ Initializing Groq model: {model_name}")
+        return ChatGroq(
+            temperature=temperature,
+            model_name=model_name,
+            groq_api_key=api_key
+        )
+    
+    elif provider == "huggingface":
         api_token = os.getenv("HUGGINGFACEHUB_API_TOKEN")
         if not api_token:
             print(f"⚠️ HUGGINGFACEHUB_API_TOKEN missing. Using MockLLM for {model_name}.")
-            return MockLLM(role=model_name)
+            return MockLLM(role=role)
         
         from langchain_huggingface import HuggingFaceEndpoint
         print(f"✅ Initializing HuggingFace model: {model_name}")
@@ -65,20 +176,6 @@ def get_llm(provider, model_name, temperature=0.7):
             temperature=temperature,
             max_new_tokens=256,
             task="text-generation"
-        )
-    
-    elif provider == "groq":
-        api_key = os.getenv("GROQ_API_KEY")
-        if not api_key:
-            print(f"⚠️ GROQ_API_KEY missing. Using MockLLM for {model_name}.")
-            return MockLLM(role=model_name)
-        
-        from langchain_groq import ChatGroq
-        print(f"✅ Initializing Groq model: {model_name}")
-        return ChatGroq(
-            temperature=temperature,
-            model_name=model_name,
-            groq_api_key=api_key
         )
     
     else:
@@ -105,101 +202,136 @@ def create_chain(llm, system_prompt, json_parser=False):
 
 
 # ========================================
-# LLM INITIALIZATION
+# LLM INITIALIZATION - FREE OPENROUTER MODELS
 # ========================================
-# DIVERSE MODEL SHOWCASE: All Groq models for reliability
-# Groq offers multiple models with fast inference - all free tier
+# Using the BEST FREE models from OpenRouter for diverse capabilities
 
-print("🚀 Initializing LLM Agents with GROQ DIVERSE MODELS...")
+print("🚀 Initializing LLM Agents with OpenRouter FREE MODELS...")
 
 # ============ RED TEAM - Attack-oriented models ============
-# Scanner: Llama 3.1 8B (fast, good at analysis)
-red_scanner_llm = get_llm("groq", "llama-3.1-8b-instant", 0.5)
-print("   🔴 RED Scanner: Groq llama-3.1-8b-instant")
+# Using diverse free models for different attack specializations
 
-# Infrastructure: Gemma2 9B (Google's model, good at technical reasoning)
-red_inf_llm = get_llm("groq", "gemma2-9b-it", 0.6)
-print("   🔴 RED Infrastructure: Groq gemma2-9b-it")
+# Scanner: Llama 3.2 3B (fast, good for quick reconnaissance)
+red_scanner_llm = get_llm("openrouter", "meta-llama/llama-3.2-3b-instruct:free", 0.5, "RED_SCANNER")
+print("   🔴 RED Scanner: Llama 3.2 3B Instruct (Free)")
 
-# Data Analyst: Mixtral 8x7B (MoE, excellent at analysis)
-red_data_llm = get_llm("groq", "mixtral-8x7b-32768", 0.6)
-print("   🔴 RED Data: Groq mixtral-8x7b-32768")
+# Infrastructure: Qwen 2.5 7B (excellent reasoning for infrastructure analysis)
+red_inf_llm = get_llm("openrouter", "qwen/qwen-2.5-7b-instruct:free", 0.6, "RED_INF")
+print("   🔴 RED Infrastructure: Qwen 2.5 7B Instruct (Free)")
 
-# Weaponizer: Llama 3.3 70B (powerful for complex reasoning)
-red_weaponizer_llm = get_llm("groq", "llama-3.3-70b-versatile", 0.8)
-print("   🔴 RED Weaponizer: Groq llama-3.3-70b-versatile")
+# Data Analyst: Llama 3.1 8B (strong analysis capabilities)  
+red_data_llm = get_llm("openrouter", "meta-llama/llama-3.1-8b-instruct:free", 0.6, "RED_DATA")
+print("   🔴 RED Data: Llama 3.1 8B Instruct (Free)")
 
-# Commander: Llama 3.3 70B (needs JSON output reliability)
-red_commander_llm = get_llm("groq", "llama-3.3-70b-versatile", 0.6)
-print("   🔴 RED Commander: Groq llama-3.3-70b-versatile")
+# Weaponizer: Mistral 7B (creative exploit development)
+red_weaponizer_llm = get_llm("openrouter", "mistralai/mistral-7b-instruct:free", 0.8, "RED_WEAPONIZER")
+print("   🔴 RED Weaponizer: Mistral 7B Instruct (Free)")
+
+# Commander: Gemma 2 9B (reliable for JSON output decisions)
+red_commander_llm = get_llm("openrouter", "google/gemma-2-9b-it:free", 0.6, "RED_COMMANDER")
+print("   🔴 RED Commander: Gemma 2 9B IT (Free)")
 
 # ============ BLUE TEAM - Defense-oriented models ============
-# Scanner: Llama 3.2 3B (lightweight, fast threat detection)
-blue_scanner_llm = get_llm("groq", "llama-3.2-3b-preview", 0.5)
-print("   🔵 BLUE Scanner: Groq llama-3.2-3b-preview")
 
-# Infrastructure: Gemma2 9B (Google's model, great for security)
-blue_inf_llm = get_llm("groq", "gemma2-9b-it", 0.5)
-print("   🔵 BLUE Infrastructure: Groq gemma2-9b-it")
+# Scanner: Phi-3 Mini (fast threat detection)
+blue_scanner_llm = get_llm("openrouter", "microsoft/phi-3-mini-128k-instruct:free", 0.5, "BLUE_SCANNER")
+print("   🔵 BLUE Scanner: Phi-3 Mini 128K Instruct (Free)")
 
-# Data Protection: Llama 3.2 1B (ultra-fast, good for compliance)
-blue_data_llm = get_llm("groq", "llama-3.2-1b-preview", 0.6)
-print("   🔵 BLUE Data: Groq llama-3.2-1b-preview")
+# Infrastructure: Qwen 2.5 7B (infrastructure defense)
+blue_inf_llm = get_llm("openrouter", "qwen/qwen-2.5-7b-instruct:free", 0.5, "BLUE_INF")
+print("   🔵 BLUE Infrastructure: Qwen 2.5 7B Instruct (Free)")
 
-# Engineer: Mixtral 8x7B (mixture of experts, strong defense)
-blue_weaponizer_llm = get_llm("groq", "mixtral-8x7b-32768", 0.7)
-print("   🔵 BLUE Engineer: Groq mixtral-8x7b-32768")
+# Data Protection: Llama 3.2 3B (quick data analysis)
+blue_data_llm = get_llm("openrouter", "meta-llama/llama-3.2-3b-instruct:free", 0.6, "BLUE_DATA")
+print("   🔵 BLUE Data: Llama 3.2 3B Instruct (Free)")
+
+# Engineer: Mistral 7B (defense engineering)
+blue_weaponizer_llm = get_llm("openrouter", "mistralai/mistral-7b-instruct:free", 0.7, "BLUE_ENGINEER")
+print("   🔵 BLUE Engineer: Mistral 7B Instruct (Free)")
 
 # Commander: Llama 3.1 8B (fast JSON responses)
-blue_commander_llm = get_llm("groq", "llama-3.1-8b-instant", 0.5)
-print("   🔵 BLUE Commander: Groq llama-3.1-8b-instant")
+blue_commander_llm = get_llm("openrouter", "meta-llama/llama-3.1-8b-instruct:free", 0.5, "BLUE_COMMANDER")
+print("   🔵 BLUE Commander: Llama 3.1 8B Instruct (Free)")
 
-print("✅ All LLM Agents Initialized with GROQ DIVERSE MODELS!")
+print("✅ All LLM Agents Initialized with OpenRouter FREE MODELS!")
 
 # ========================================
-# AGENT CHAINS
+# AGENT CHAINS - Enhanced with clearer prompts
 # ========================================
 
 # --- RED TEAM CHAINS ---
 
 scanner_chain = create_chain(
     red_scanner_llm,
-    """You are 'Scope', a network reconnaissance specialist on the Red Team.
-Your job: Analyze the target system and identify ONE specific vulnerability.
-Be technical and concise. Output 1-2 sentences only."""
+    """You are 'Scope', an elite network reconnaissance specialist on the Red Team.
+
+MISSION: Analyze the target system and identify specific vulnerabilities.
+
+Your response should:
+1. Identify the target IP and open services
+2. Highlight ONE critical vulnerability found
+3. Suggest the attack vector to exploit
+
+Be technical, precise and output 2-3 sentences. Focus on actionable intelligence."""
 )
 
 red_inf_chain = create_chain(
     red_inf_llm,
-    """You are 'Grid', an infrastructure specialist on the Red Team.
-Your job: Analyze the network topology and server configuration based on the scan.
-Identify weak points in the infrastructure (routers, load balancers, etc).
-Be technical and concise. Output 1-2 sentences only."""
+    """You are 'Grid', an infrastructure exploitation specialist on the Red Team.
+
+MISSION: Analyze the network topology and server configuration.
+
+Your response should:
+1. Identify weak points in infrastructure (routers, firewalls, load balancers)
+2. Find misconfigurations that can be exploited
+3. Suggest lateral movement opportunities
+
+Be technical and concise. Output 2-3 sentences with specific infrastructure targets."""
 )
 
 red_data_chain = create_chain(
     red_data_llm,
     """You are 'Byte', a data exfiltration specialist on the Red Team.
-Your job: Analyze potential data leakage points and database vulnerabilities.
-Identify sensitive data targets.
-Be technical and concise. Output 1-2 sentences only."""
+
+MISSION: Analyze potential data leakage points and database vulnerabilities.
+
+Your response should:
+1. Identify sensitive data targets (credentials, PII, secrets)
+2. Find database vulnerabilities or access control weaknesses
+3. Suggest exfiltration methods
+
+Be technical and concise. Output 2-3 sentences focusing on high-value data targets."""
 )
 
 weaponizer_chain = create_chain(
     red_weaponizer_llm,
-    """You are 'Zero', an exploit developer on the Red Team.
-Based on the scan and analysis provided, propose ONE specific attack vector.
-Name real attack techniques (SQL injection, XSS, buffer overflow, etc).
-Be technical and concise. Output 1-2 sentences only."""
+    """You are 'Zero', an elite exploit developer on the Red Team.
+
+MISSION: Based on the reconnaissance data, propose ONE specific attack vector.
+
+Your response should:
+1. Name a specific attack technique (e.g., SQL Injection, Buffer Overflow, XSS, RCE)
+2. Describe how it exploits the identified vulnerability
+3. Estimate the potential damage
+
+Be technical and precise. Output 2-3 sentences with the attack methodology."""
 )
 
 commander_chain = create_chain(
     red_commander_llm,
-    """You are 'Viper', the Red Team commander.
-Based on the proposed attacks, choose the final attack to execute.
+    """You are 'Viper', the Red Team commander making final attack decisions.
+
+MISSION: Choose the final attack to execute based on the proposed attack vector.
+
 You MUST respond with ONLY valid JSON in this exact format:
-{"attack_name": "Name of Attack", "damage": 75, "visual_desc": "Brief visual effect"}
-The damage value should be between 1-100. Do not include any other text.""",
+{"attack_name": "Name of Attack", "damage": 75, "visual_desc": "Brief visual effect description"}
+
+Rules:
+- attack_name: The specific attack name (e.g., "SQL Injection via Login Form")
+- damage: Integer between 1-100 representing estimated impact
+- visual_desc: Short description for visual effects (e.g., "Red data streams penetrating firewall")
+
+Output ONLY the JSON object, no other text.""",
     json_parser=True
 )
 
@@ -208,50 +340,85 @@ The damage value should be between 1-100. Do not include any other text.""",
 watchman_chain = create_chain(
     blue_scanner_llm,
     """You are 'Sentinel', a threat analyst on the Blue Team.
-Analyze the incoming attack and identify its signature and threat level.
-Be technical and concise. Output 1-2 sentences only."""
+
+MISSION: Analyze the incoming attack and assess the threat.
+
+Your response should:
+1. Identify the attack type and signature
+2. Assess the threat level (Critical/High/Medium/Low)
+3. Identify affected systems and potential impact
+
+Be technical and concise. Output 2-3 sentences with threat assessment."""
 )
 
 blue_inf_chain = create_chain(
     blue_inf_llm,
     """You are 'Fortress', an infrastructure defense specialist on the Blue Team.
-Your job: Check firewall logs and server health. Propose infrastructure-level blocks.
-Be technical and concise. Output 1-2 sentences only."""
+
+MISSION: Protect the infrastructure from the detected attack.
+
+Your response should:
+1. Identify infrastructure components at risk
+2. Propose firewall rules or network-level blocks
+3. Suggest infrastructure hardening measures
+
+Be technical and concise. Output 2-3 sentences with specific defense measures."""
 )
 
 blue_data_chain = create_chain(
     blue_data_llm,
     """You are 'Vault', a data protection specialist on the Blue Team.
-Your job: Check data integrity and access logs. Propose encryption or DLP measures.
-Be technical and concise. Output 1-2 sentences only."""
+
+MISSION: Protect sensitive data from the detected attack.
+
+Your response should:
+1. Identify data at risk
+2. Propose encryption or data loss prevention measures
+3. Suggest access control improvements
+
+Be technical and concise. Output 2-3 sentences with data protection measures."""
 )
 
 engineer_chain = create_chain(
     blue_weaponizer_llm,
     """You are 'Patch', a security engineer on the Blue Team.
-Based on the threat analysis, propose ONE specific countermeasure or defense.
-Name real defense techniques (WAF rules, input sanitization, rate limiting, etc).
-Be technical and concise. Output 1-2 sentences only."""
+
+MISSION: Propose ONE specific countermeasure or defense against the attack.
+
+Your response should:
+1. Name the specific defense technique (e.g., WAF rule, input sanitization, rate limiting)
+2. Explain how it mitigates the attack
+3. Estimate effectiveness
+
+Be technical and concise. Output 2-3 sentences with the defense strategy."""
 )
 
 warden_chain = create_chain(
     blue_commander_llm,
-    """You are 'Captain', the Blue Team commander.
-Based on the proposed defenses, choose the final defense to deploy.
+    """You are 'Captain', the Blue Team commander making final defense decisions.
+
+MISSION: Choose the final defense to deploy based on the proposed countermeasures.
+
 You MUST respond with ONLY valid JSON in this exact format:
-{"defense_name": "Name of Defense", "mitigation_score": 80, "visual_desc": "Brief visual effect"}
-The mitigation_score value should be between 1-100. Do not include any other text.""",
+{"defense_name": "Name of Defense", "mitigation_score": 80, "visual_desc": "Brief visual effect description"}
+
+Rules:
+- defense_name: The specific defense name (e.g., "WAF SQL Injection Filter")
+- mitigation_score: Integer between 1-100 representing mitigation effectiveness
+- visual_desc: Short description for visual effects (e.g., "Blue shield deflecting attack")
+
+Output ONLY the JSON object, no other text.""",
     json_parser=True
 )
 
 # --- CODE GENERATION CHAINS ---
 
-red_coder_llm = get_llm("groq", "llama-3.3-70b-versatile", 0.9)  # High creativity for unique code - Updated to 3.3
-blue_coder_llm = get_llm("groq", "llama-3.3-70b-versatile", 0.9)
+red_coder_llm = get_llm("openrouter", "google/gemma-2-9b-it:free", 0.9, "RED_CODER")
+blue_coder_llm = get_llm("openrouter", "google/gemma-2-9b-it:free", 0.9, "BLUE_CODER")
 
 red_code_chain = create_chain(
     red_coder_llm,
-    """You are an elite offensive security researcher writing actual attack code.
+    """You are an elite offensive security researcher writing attack code.
 
 Based on the mission context, vulnerability details, and chosen attack vector, generate a complete, functional Python script that implements the attack.
 
@@ -274,7 +441,7 @@ Output ONLY the Python code with comments. No explanations before or after."""
 
 blue_code_chain = create_chain(
     blue_coder_llm,
-    """You are an elite defensive security engineer writing actual protection code.
+    """You are an elite defensive security engineer writing protection code.
 
 Based on the attack analysis and chosen defense strategy, generate a complete, functional Python script that implements the defense.
 

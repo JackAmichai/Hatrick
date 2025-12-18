@@ -56,37 +56,49 @@ export const useGameSocket = () => {
             clearInterval(mockIntervalRef.current);
         }
 
-        // RANDOMIZE MOCK SCRIPTS
+        // MISSION-AWARE MOCK SCRIPTS with vulnerability context
         const variants = [
             {
-                scan: "Target Acquired: Simulated Vulnerability found on Layer 7.",
-                weapon: "Compiling Payload: SQL Injection vs Localhost.",
-                proposal: "SQL Injection",
-                desc: "Inject malicious SQL query to bypass authentication. Est. Damage: 15%",
-                blueScan: "Anomaly Detected: Unauthorized DB Access signature.",
-                blueWeap: "Deploying WAF Ruleset: BLOCK_SQLI."
+                scan: "🔍 RECON: Target 192.168.1.45 online. Port 3306 (MySQL 5.7.31) detected. Unvalidated input in /login endpoint identified.",
+                infra: "🏗️ INFRA: Load balancer misconfigured. No rate limiting on database connections. Direct DB access possible via port 3306.",
+                data: "📊 DATA: User credentials table exposed. Password hashing uses weak MD5. Session tokens predictable.",
+                weapon: "⚔️ EXPLOIT: SQL Injection payload crafted: ' OR '1'='1' -- targeting login form authentication bypass.",
+                proposal: "SQL Injection Attack",
+                desc: "Inject malicious SQL query via login form to bypass authentication. Estimated damage: 75%",
+                blueScan: "🚨 ALERT: Anomalous database query pattern detected. SQL injection attempt on authentication endpoint.",
+                blueInfra: "🛡️ NETWORK: Activating database firewall. Blocking suspicious SQL patterns from external IPs.",
+                blueData: "🔐 PROTECT: Enabling query parameterization. Revoking direct database access for web tier.",
+                blueWeap: "🔧 DEPLOY: WAF rule set OWASP-CRS activated. Input sanitization layer enabled."
             },
             {
-                scan: "Target Acquired: Exposed Port 8080 found in subnet.",
-                weapon: "Crafting Payload: Buffer Overflow via HTTP Header.",
-                proposal: "Buffer Overflow",
-                desc: "Send malformed header to crash service. Est. Damage: 25%",
-                blueScan: "Alert: Memory Segmentation Fault predicted.",
-                blueWeap: "Activating: ASLR & Stack Guardians."
+                scan: "🔍 RECON: Target 10.0.0.128 responding. Port 80 (Apache/2.4.29) vulnerable. HTTP header parsing buffer unchecked.",
+                infra: "🏗️ INFRA: Web server using outdated Apache version. Stack canaries disabled. ASLR not enforced.",
+                data: "📊 DATA: Memory layout predictable. Return address at offset 1024 bytes. Shell code injection possible.",
+                weapon: "⚔️ EXPLOIT: Buffer overflow via User-Agent header. Payload size: 1536 bytes with NOP sled and shellcode.",
+                proposal: "Buffer Overflow Attack",
+                desc: "Send malformed HTTP header to corrupt memory and execute arbitrary code. Estimated damage: 85%",
+                blueScan: "🚨 ALERT: Memory segmentation fault predicted. Oversized HTTP header detected in incoming request.",
+                blueInfra: "🛡️ NETWORK: Enabling stack protection mechanisms. Updating firewall to filter oversized headers.",
+                blueData: "🔐 PROTECT: Implementing input length validation. Enabling DEP for memory protection.",
+                blueWeap: "🔧 DEPLOY: ASLR enabled. Stack canaries activated. Max header size enforced at 8KB."
             },
             {
-                scan: "Target Acquired: Weak Encryption Key Exchange detected.",
-                weapon: "Initializing: MITM Interception Module.",
+                scan: "🔍 RECON: Target 172.16.0.55 intercepted. TLS 1.0 negotiation vulnerable. OpenSSL 1.0.1e detected (CVE-2014-0160).",
+                infra: "🏗️ INFRA: No certificate pinning. HSTS not enforced. ARP tables not protected.",
+                data: "📊 DATA: Session tokens transmitted in TLS 1.0. Perfect Forward Secrecy disabled. Heartbleed exploitable.",
+                weapon: "⚔️ EXPLOIT: MITM via ARP spoofing + SSL stripping. Intercepting credentials during TLS handshake.",
                 proposal: "MITM Attack",
-                desc: "Intercept handshake and downgrade TLS. Est. Damage: 20%",
-                blueScan: "Warning: Certificate Authority Mismatch.",
-                blueWeap: "Enforcing: HSTS & Cert Pinning."
+                desc: "Intercept TLS handshake and downgrade encryption to steal credentials. Estimated damage: 70%",
+                blueScan: "🚨 ALERT: ARP anomaly detected. Certificate mismatch warning. Potential MITM in progress.",
+                blueInfra: "🛡️ NETWORK: Enforcing static ARP entries. Upgrading TLS to 1.3. Enabling HSTS preload.",
+                blueData: "🔐 PROTECT: Certificate pinning enabled. Mutual TLS authentication required.",
+                blueWeap: "🔧 DEPLOY: HSTS headers configured. Certificate transparency monitoring active."
             }
         ];
         const script = variants[Math.floor(Math.random() * variants.length)];
 
         mockIntervalRef.current = setInterval(() => {
-            const step = mockStepRef.current; // Current step
+            const step = mockStepRef.current;
             console.log(`🎬 Mock Mode Step ${step}`);
 
             // --- RED TEAM TURN ---
@@ -100,17 +112,29 @@ export const useGameSocket = () => {
             // 2. Red Scanner (Result)
             else if (step === 2) {
                 setMessages({ RED_SCANNER: script.scan });
-                setStatuses(prev => ({ ...prev, RED_SCANNER: "IDLE", RED_WEAPONIZER: "THINKING" }));
+                setStatuses(prev => ({ ...prev, RED_SCANNER: "IDLE", RED_INF: "THINKING" }));
+                mockStepRef.current++;
+            }
+            // 2b. Red Infrastructure (Result)
+            else if (step === 3) {
+                setMessages(prev => ({ ...prev, RED_INF: script.infra }));
+                setStatuses(prev => ({ ...prev, RED_INF: "IDLE", RED_DATA: "THINKING" }));
+                mockStepRef.current++;
+            }
+            // 2c. Red Data (Result)
+            else if (step === 4) {
+                setMessages(prev => ({ ...prev, RED_DATA: script.data }));
+                setStatuses(prev => ({ ...prev, RED_DATA: "IDLE", RED_WEAPONIZER: "THINKING" }));
                 mockStepRef.current++;
             }
             // 3. Red Weaponizer (Result)
-            else if (step === 3) {
-                setMessages({ RED_WEAPONIZER: script.weapon });
+            else if (step === 5) {
+                setMessages(prev => ({ ...prev, RED_WEAPONIZER: script.weapon }));
                 setStatuses(prev => ({ ...prev, RED_WEAPONIZER: "IDLE", RED_COMMANDER: "THINKING" }));
                 mockStepRef.current++;
             }
             // 4. RED PROPOSAL (PAUSE HERE)
-            else if (step === 4) {
+            else if (step === 6) {
                 setProposal({
                     team: "RED",
                     action: script.proposal,
@@ -119,9 +143,9 @@ export const useGameSocket = () => {
                 // DO NOT INCREMENT STEP automatically. Wait for submitDecision.
             }
             // 5. RED EXECUTE (Resume after approval)
-            else if (step === 5) {
-                setMessages({ RED_COMMANDER: "Authorized: DEPLOY PAYLOAD." });
-                setHealth(prev => Math.max(0, prev - 15));
+            else if (step === 7) {
+                setMessages(prev => ({ ...prev, RED_COMMANDER: "✅ AUTHORIZED: Attack sequence initiated. Deploying payload to target." }));
+                setHealth(prev => Math.max(0, prev - 25));
                 setIsHit(true);
                 setTimeout(() => setIsHit(false), 500);
                 setStatuses(prev => ({ ...prev, RED_COMMANDER: "IDLE", BLUE_SCANNER: "THINKING" }));
@@ -130,36 +154,47 @@ export const useGameSocket = () => {
 
             // --- BLUE TEAM TURN ---
 
-            // 6. Blue Watchman (Thinking)
-            else if (step === 6) {
-                setMessages(prev => ({ ...prev, BLUE_SCANNER: "Thinking..." }));
+            // 6. Blue Scanner (Thinking)
+            else if (step === 8) {
                 setStatuses(prev => ({ ...prev, BLUE_SCANNER: "THINKING" }));
                 mockStepRef.current++;
             }
-            // 7. Blue Watchman result
-            else if (step === 7) {
-                setMessages({ BLUE_SCANNER: script.blueScan });
-                setStatuses(prev => ({ ...prev, BLUE_SCANNER: "IDLE", BLUE_WEAPONIZER: "THINKING" }));
+            // 7. Blue Scanner result
+            else if (step === 9) {
+                setMessages(prev => ({ ...prev, BLUE_SCANNER: script.blueScan }));
+                setStatuses(prev => ({ ...prev, BLUE_SCANNER: "IDLE", BLUE_INF: "THINKING" }));
                 mockStepRef.current++;
             }
-            // 8. Blue Engineering (Result)
-            else if (step === 8) {
-                setMessages({ BLUE_WEAPONIZER: script.blueWeap });
+            // 7b. Blue Infrastructure result
+            else if (step === 10) {
+                setMessages(prev => ({ ...prev, BLUE_INF: script.blueInfra }));
+                setStatuses(prev => ({ ...prev, BLUE_INF: "IDLE", BLUE_DATA: "THINKING" }));
+                mockStepRef.current++;
+            }
+            // 7c. Blue Data result
+            else if (step === 11) {
+                setMessages(prev => ({ ...prev, BLUE_DATA: script.blueData }));
+                setStatuses(prev => ({ ...prev, BLUE_DATA: "IDLE", BLUE_WEAPONIZER: "THINKING" }));
+                mockStepRef.current++;
+            }
+            // 8. Blue Engineer (Result)
+            else if (step === 12) {
+                setMessages(prev => ({ ...prev, BLUE_WEAPONIZER: script.blueWeap }));
                 setStatuses(prev => ({ ...prev, BLUE_WEAPONIZER: "IDLE", BLUE_COMMANDER: "THINKING" }));
                 mockStepRef.current++;
             }
             // 9. BLUE PROPOSAL (PAUSE HERE)
-            else if (step === 9) {
+            else if (step === 13) {
                 setProposal({
                     team: "BLUE",
-                    action: "Defensive Measures",
-                    description: "Deploying Countermeasures. Mitigation: 85%"
+                    action: "Deploy Countermeasures",
+                    description: "Activating defense protocols. Estimated mitigation: 85%"
                 });
                 // DO NOT INCREMENT STEP automatically.
             }
             // 10. BLUE EXECUTE (Resume after approval)
-            else if (step === 10) {
-                setMessages({ BLUE_COMMANDER: "System Secure. Mitigation Active." });
+            else if (step === 14) {
+                setMessages(prev => ({ ...prev, BLUE_COMMANDER: "✅ DEPLOYED: Defense systems active. Attack successfully mitigated." }));
                 setDefenseDesc("Shield Active 🛡️");
                 setMitigationScore(85);
                 setStatuses(prev => ({ ...prev, BLUE_COMMANDER: "IDLE" }));
