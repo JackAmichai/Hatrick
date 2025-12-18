@@ -35,7 +35,7 @@ const exploitabilityConfig: Record<Exploitability, { color: string; label: strin
   unproven: { color: 'text-neutral-400 bg-neutral-500/20', label: 'No Known Exploit' },
 };
 
-const CVECard = ({ cve, onClick: _onClick }: { cve: CVEEntry; onClick?: () => void }) => {
+const CVECard = ({ cve }: { cve: CVEEntry }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const sevConfig = severityConfig[cve.severity];
   const expConfig = exploitabilityConfig[cve.exploitability];
@@ -155,7 +155,7 @@ const CVECard = ({ cve, onClick: _onClick }: { cve: CVEEntry; onClick?: () => vo
   );
 };
 
-export const CVEPanel = ({ cves, onCVEClick }: CVEPanelProps) => {
+export const CVEPanel = ({ cves }: CVEPanelProps) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [severityFilter, setSeverityFilter] = useState<CVESeverity | 'ALL'>('ALL');
   const [exploitFilter, setExploitFilter] = useState<Exploitability | 'ALL'>('ALL');
@@ -249,7 +249,6 @@ export const CVEPanel = ({ cves, onCVEClick }: CVEPanelProps) => {
               <CVECard 
                 key={cve.cve_id} 
                 cve={cve} 
-                onClick={() => onCVEClick?.(cve.cve_id)}
               />
             ))
           ) : (

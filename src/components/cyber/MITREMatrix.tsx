@@ -58,12 +58,10 @@ const tacticColors: Record<string, string> = {
 
 const TechniqueCard = ({ 
   technique, 
-  isHighlighted,
-  onClick: _onClick 
+  isHighlighted
 }: { 
   technique: MITRETechnique;
   isHighlighted: boolean;
-  onClick?: () => void;
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   
@@ -193,8 +191,7 @@ const TechniqueCard = ({
 
 export const MITREMatrix = ({ 
   techniques, 
-  highlightedTechniques = [],
-  onTechniqueClick 
+  highlightedTechniques = []
 }: MITREMatrixProps) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTactic, setSelectedTactic] = useState<MITRETactic | 'ALL'>('ALL');
@@ -294,7 +291,6 @@ export const MITREMatrix = ({
               key={technique.technique_id}
               technique={technique}
               isHighlighted={highlightedTechniques.includes(technique.technique_id)}
-              onClick={() => onTechniqueClick?.(technique.technique_id)}
             />
           ))}
         </AnimatePresence>

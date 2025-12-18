@@ -378,7 +378,7 @@ export const CredentialVaultPanel = ({
         
         <select
           value={typeFilter}
-          onChange={(e) => setTypeFilter(e.target.value as any)}
+          onChange={(e) => setTypeFilter(e.target.value as CredentialType | 'ALL')}
           className="px-3 py-2 bg-neutral-800 border border-neutral-700 rounded-lg text-white text-sm focus:border-cyan-500 outline-none"
         >
           <option value="ALL">All Types</option>

@@ -56,7 +56,7 @@ const TypewriterText = ({ text, speed = 20 }: { text: string; speed?: number }) 
   return <span>{displayedText}</span>;
 };
 
-const DebateBubble = ({ round, index: _index, isNew }: { round: DebateRound; index: number; isNew: boolean }) => {
+const DebateBubble = ({ round, isNew }: { round: DebateRound; isNew: boolean }) => {
   const isRed = round.agent_id.includes('RED');
   const gradientClass = personalityColors[round.personality] || personalityColors.analytical;
   
@@ -182,7 +182,6 @@ export const AgentDebatePanel = ({ debateRounds, isDebating, autoPlay = true }: 
             <DebateBubble
               key={`${round.agent_id}-${round.round_type}-${index}`}
               round={round}
-              index={index}
               isNew={index === visibleRounds - 1}
             />
           ))}

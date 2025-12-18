@@ -13,7 +13,7 @@ interface CollaborationGraphPanelProps {
 // Simple canvas-based network visualization
 const NetworkCanvas = ({ graph }: { graph: CollaborationGraph }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [hoveredNode, _setHoveredNode] = useState<CollaborationNode | null>(null);
+  const [hoveredNode] = useState<CollaborationNode | null>(null);
   
   useEffect(() => {
     const canvas = canvasRef.current;

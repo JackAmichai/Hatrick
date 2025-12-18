@@ -335,7 +335,7 @@ export const AttackSurfacePanel = ({
       <div className="flex flex-wrap items-center gap-3 mb-4">
         <select
           value={exposureFilter}
-          onChange={(e) => setExposureFilter(e.target.value as any)}
+          onChange={(e) => setExposureFilter(e.target.value as ExposureLevel | 'ALL')}
           className="px-3 py-2 bg-neutral-800 border border-neutral-700 rounded-lg text-white text-sm focus:border-cyan-500 outline-none"
         >
           <option value="ALL">All Exposure Levels</option>

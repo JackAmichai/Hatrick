@@ -104,12 +104,10 @@ const PlaybookStepRow = ({ step, index }: { step: PlaybookStep; index: number })
 
 const PlaybookCard = ({ 
   playbook, 
-  onExecute,
-  onClick: _onClick 
+  onExecute
 }: { 
   playbook: DefensePlaybook; 
   onExecute?: () => void;
-  onClick?: () => void;
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   
@@ -266,9 +264,7 @@ const PlaybookCard = ({
 export const DefensePlaybooksPanel = ({ 
   playbooks, 
   executions,
-  onPlaybookClick,
-  onExecutePlaybook,
-  onStopExecution: _onStopExecution 
+  onExecutePlaybook
 }: DefensePlaybooksPanelProps) => {
   const [typeFilter, setTypeFilter] = useState<PlaybookType | 'ALL'>('ALL');
   const [statusFilter, setStatusFilter] = useState<PlaybookStatus | 'ALL'>('ALL');
@@ -333,7 +329,7 @@ export const DefensePlaybooksPanel = ({
       <div className="flex flex-wrap items-center gap-3 mb-4">
         <select
           value={typeFilter}
-          onChange={(e) => setTypeFilter(e.target.value as any)}
+          onChange={(e) => setTypeFilter(e.target.value as PlaybookType | 'ALL')}
           className="px-3 py-2 bg-neutral-800 border border-neutral-700 rounded-lg text-white text-sm focus:border-cyan-500 outline-none"
         >
           <option value="ALL">All Types</option>
@@ -344,7 +340,7 @@ export const DefensePlaybooksPanel = ({
         
         <select
           value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value as any)}
+          onChange={(e) => setStatusFilter(e.target.value as PlaybookStatus | 'ALL')}
           className="px-3 py-2 bg-neutral-800 border border-neutral-700 rounded-lg text-white text-sm focus:border-cyan-500 outline-none"
         >
           <option value="ALL">All Statuses</option>
@@ -362,7 +358,6 @@ export const DefensePlaybooksPanel = ({
             <PlaybookCard
               key={playbook.id}
               playbook={playbook}
-              onClick={() => onPlaybookClick?.(playbook.id)}
               onExecute={onExecutePlaybook ? () => onExecutePlaybook(playbook.id) : undefined}
             />
           ))

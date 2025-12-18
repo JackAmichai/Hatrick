@@ -363,7 +363,7 @@ export const C2SimulationPanel = ({
         {viewMode === 'channels' && (
           <select
             value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value as any)}
+            onChange={(e) => setStatusFilter(e.target.value as C2Status | 'ALL')}
             className="px-3 py-2 bg-neutral-800 border border-neutral-700 rounded-lg text-white text-sm focus:border-cyan-500 outline-none"
           >
             <option value="ALL">All Statuses</option>

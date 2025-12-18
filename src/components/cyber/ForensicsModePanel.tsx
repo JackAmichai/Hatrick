@@ -62,11 +62,9 @@ const formatBytes = (bytes: number): string => {
 
 const ArtifactCard = ({ 
   artifact, 
-  onClick: _onClick,
   onExport 
 }: { 
   artifact: ForensicArtifact; 
-  onClick?: () => void;
   onExport?: () => void;
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -245,7 +243,6 @@ const TimelineView = ({ timeline }: { timeline: ForensicTimeline }) => (
 export const ForensicsModePanel = ({ 
   artifacts, 
   timeline,
-  onArtifactClick,
   onExportArtifact 
 }: ForensicsModePanelProps) => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -355,7 +352,7 @@ export const ForensicsModePanel = ({
         
         <select
           value={maliciousFilter}
-          onChange={(e) => setMaliciousFilter(e.target.value as any)}
+          onChange={(e) => setMaliciousFilter(e.target.value as 'ALL' | 'malicious' | 'clean' | 'unknown')}
           className="px-3 py-2 bg-neutral-800 border border-neutral-700 rounded-lg text-white text-sm focus:border-cyan-500 outline-none"
         >
           <option value="ALL">All Verdicts</option>
@@ -374,7 +371,6 @@ export const ForensicsModePanel = ({
                 <ArtifactCard
                   key={artifact.id}
                   artifact={artifact}
-                  onClick={() => onArtifactClick?.(artifact.id)}
                   onExport={onExportArtifact ? () => onExportArtifact(artifact.id) : undefined}
                 />
               ))

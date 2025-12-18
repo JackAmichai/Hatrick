@@ -97,13 +97,11 @@ const FindingCard = ({ finding }: { finding: HuntFinding }) => (
 const HuntCard = ({ 
   hunt, 
   onStart,
-  onStop,
-  onClick: _onClick 
+  onStop
 }: { 
   hunt: ThreatHunt; 
   onStart?: () => void;
   onStop?: () => void;
-  onClick?: () => void;
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   
@@ -278,7 +276,6 @@ const HuntCard = ({
 export const ThreatHuntingPanel = ({ 
   hunts, 
   metrics,
-  onHuntClick,
   onStartHunt,
   onStopHunt 
 }: ThreatHuntingPanelProps) => {
@@ -386,7 +383,7 @@ export const ThreatHuntingPanel = ({
         
         <select
           value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value as any)}
+          onChange={(e) => setStatusFilter(e.target.value as HuntStatus | 'ALL')}
           className="px-3 py-2 bg-neutral-800 border border-neutral-700 rounded-lg text-white text-sm focus:border-cyan-500 outline-none"
         >
           <option value="ALL">All Statuses</option>
@@ -399,7 +396,7 @@ export const ThreatHuntingPanel = ({
         
         <select
           value={priorityFilter}
-          onChange={(e) => setPriorityFilter(e.target.value as any)}
+          onChange={(e) => setPriorityFilter(e.target.value as HuntPriority | 'ALL')}
           className="px-3 py-2 bg-neutral-800 border border-neutral-700 rounded-lg text-white text-sm focus:border-cyan-500 outline-none"
         >
           <option value="ALL">All Priorities</option>
@@ -417,7 +414,6 @@ export const ThreatHuntingPanel = ({
             <HuntCard
               key={hunt.id}
               hunt={hunt}
-              onClick={() => onHuntClick?.(hunt.id)}
               onStart={onStartHunt ? () => onStartHunt(hunt.id) : undefined}
               onStop={onStopHunt ? () => onStopHunt(hunt.id) : undefined}
             />

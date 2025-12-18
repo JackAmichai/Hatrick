@@ -335,7 +335,6 @@ const SandboxResultCard = ({
 export const SandboxPanel = ({ 
   results, 
   onSubmitSample,
-  onViewResult: _onViewResult,
   onExportReport 
 }: SandboxPanelProps) => {
   const [statusFilter, setStatusFilter] = useState<SandboxStatus | 'ALL'>('ALL');

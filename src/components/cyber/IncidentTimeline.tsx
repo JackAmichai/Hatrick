@@ -50,14 +50,10 @@ const statusConfig: Record<IncidentStatus, { color: string; bg: string; icon: ty
 
 const TimelineEventCard = ({ 
   event, 
-  isFirst: _isFirst,
-  isLast,
-  onClick: _onClick 
+  isLast
 }: { 
   event: TimelineEvent; 
-  isFirst: boolean;
   isLast: boolean;
-  onClick?: () => void;
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const config = severityConfig[event.severity];
@@ -228,8 +224,7 @@ const IncidentCard = ({
 export const IncidentTimeline = ({ 
   incidents, 
   selectedIncident,
-  onIncidentSelect,
-  onEventClick 
+  onIncidentSelect
 }: IncidentTimelineProps) => {
   const [statusFilter, setStatusFilter] = useState<IncidentStatus | 'ALL'>('ALL');
   const [severityFilter, setSeverityFilter] = useState<IncidentSeverity | 'ALL'>('ALL');
@@ -347,9 +342,7 @@ export const IncidentTimeline = ({
                   <TimelineEventCard
                     key={event.id}
                     event={event}
-                    isFirst={index === 0}
                     isLast={index === selectedIncident.events.length - 1}
-                    onClick={() => onEventClick?.(event.id)}
                   />
                 ))}
               </div>

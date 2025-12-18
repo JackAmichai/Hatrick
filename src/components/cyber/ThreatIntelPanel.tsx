@@ -285,9 +285,7 @@ const CampaignCard = ({ campaign }: { campaign: ThreatCampaign }) => {
 export const ThreatIntelPanel = ({ 
   indicators, 
   campaigns, 
-  summary,
-  onIndicatorClick: _onIndicatorClick,
-  onCampaignClick: _onCampaignClick 
+  summary
 }: ThreatIntelPanelProps) => {
   const [activeTab, setActiveTab] = useState<'indicators' | 'campaigns'>('indicators');
   const [searchQuery, setSearchQuery] = useState('');

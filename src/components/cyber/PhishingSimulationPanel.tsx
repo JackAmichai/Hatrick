@@ -73,12 +73,10 @@ const MetricBar = ({
 
 const CampaignCard = ({ 
   campaign, 
-  onClick: _onClick,
   onStart,
   onStop 
 }: { 
   campaign: PhishingCampaign; 
-  onClick?: () => void;
   onStart?: () => void;
   onStop?: () => void;
 }) => {
@@ -243,7 +241,6 @@ const CampaignCard = ({
 export const PhishingSimulationPanel = ({ 
   campaigns, 
   metrics,
-  onCampaignClick,
   onStartCampaign,
   onStopCampaign 
 }: PhishingSimulationPanelProps) => {
@@ -347,7 +344,7 @@ export const PhishingSimulationPanel = ({
       <div className="flex items-center gap-3 mb-4">
         <select
           value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value as any)}
+          onChange={(e) => setStatusFilter(e.target.value as CampaignStatus | 'ALL')}
           className="px-3 py-2 bg-neutral-800 border border-neutral-700 rounded-lg text-white text-sm focus:border-cyan-500 outline-none"
         >
           <option value="ALL">All Campaigns</option>
@@ -372,7 +369,6 @@ export const PhishingSimulationPanel = ({
             <CampaignCard
               key={campaign.id}
               campaign={campaign}
-              onClick={() => onCampaignClick?.(campaign.id)}
               onStart={onStartCampaign ? () => onStartCampaign(campaign.id) : undefined}
               onStop={onStopCampaign ? () => onStopCampaign(campaign.id) : undefined}
             />

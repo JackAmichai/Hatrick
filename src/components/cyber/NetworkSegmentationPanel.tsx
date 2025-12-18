@@ -60,11 +60,9 @@ const actionColors: Record<PolicyAction, string> = {
 };
 
 const ZoneCard = ({ 
-  zone, 
-  onClick: _onClick 
+  zone
 }: { 
   zone: NetworkZone; 
-  onClick?: () => void;
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   
@@ -235,7 +233,6 @@ const PolicyRow = ({
 
 export const NetworkSegmentationPanel = ({ 
   data, 
-  onZoneClick,
   onPolicyClick 
 }: NetworkSegmentationPanelProps) => {
   const [viewMode, setViewMode] = useState<'zones' | 'policies'>('zones');
@@ -348,7 +345,7 @@ export const NetworkSegmentationPanel = ({
         {viewMode === 'zones' ? (
           <select
             value={zoneFilter}
-            onChange={(e) => setZoneFilter(e.target.value as any)}
+            onChange={(e) => setZoneFilter(e.target.value as ZoneType | 'ALL')}
             className="px-3 py-2 bg-neutral-800 border border-neutral-700 rounded-lg text-white text-sm focus:border-cyan-500 outline-none"
           >
             <option value="ALL">All Zone Types</option>
@@ -359,7 +356,7 @@ export const NetworkSegmentationPanel = ({
         ) : (
           <select
             value={actionFilter}
-            onChange={(e) => setActionFilter(e.target.value as any)}
+            onChange={(e) => setActionFilter(e.target.value as PolicyAction | 'ALL')}
             className="px-3 py-2 bg-neutral-800 border border-neutral-700 rounded-lg text-white text-sm focus:border-cyan-500 outline-none"
           >
             <option value="ALL">All Actions</option>
@@ -380,7 +377,6 @@ export const NetworkSegmentationPanel = ({
                 <ZoneCard
                   key={zone.id}
                   zone={zone}
-                  onClick={() => onZoneClick?.(zone.id)}
                 />
               ))
             ) : (

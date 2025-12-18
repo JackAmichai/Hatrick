@@ -227,8 +227,7 @@ const ControlRow = ({
 
 export const ComplianceDashboard = ({ 
   scores, 
-  controls,
-  onControlClick: _onControlClick 
+  controls
 }: ComplianceDashboardProps) => {
   const [selectedFramework, setSelectedFramework] = useState<ComplianceFramework | 'ALL'>('ALL');
   const [statusFilter, setStatusFilter] = useState<ComplianceStatus | 'ALL'>('ALL');
