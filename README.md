@@ -2,7 +2,7 @@
 
 **HatTrick** is a real-time cybersecurity visualization platform where autonomous AI agents (Red Team vs. Blue Team) battle in simulated scenarios.
 
-Powered by **Groq** (Llama-3, Phi-3), **LangChain**, and **React**.
+Powered by **OpenRouter** (Llama 3.2, Qwen 2.5, Mistral 7B, Gemma 2, Phi-3), **LangChain**, and **React**.
 
 ![HatTrick Screenshot](https://github.com/JackAmichai/Hatrick/assets/placeholder/homepage.png)
 
@@ -146,7 +146,7 @@ Powered by **Groq** (Llama-3, Phi-3), **LangChain**, and **React**.
 ### Prerequisites
 - Python 3.10+
 - Node.js 18+
-- A [Groq API Key](https://console.groq.com/keys)
+- An [OpenRouter API Key](https://openrouter.ai/keys) (free tier available)
 
 ### 1. Backend (The Brains)
 ```bash
@@ -154,7 +154,10 @@ cd backend
 python3 -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
-export GROQ_API_KEY="your_api_key_here"  # On Windows: set GROQ_API_KEY=your_api_key_here
+
+# Create .env file with your API key
+echo "OPENROUTER_API_KEY=your_api_key_here" > .env
+
 uvicorn main:app --reload
 ```
 
@@ -169,7 +172,7 @@ Visit http://localhost:5173
 ## 🏗️ Architecture
 - **Frontend**: Vite + React 18 + TypeScript 5.4 + Framer Motion 11 + Tailwind CSS 3.4
 - **Backend**: FastAPI + WebSockets + LangChain + LangGraph
-- **AI**: Groq (LPU Inference Engine) for sub-second agent responses
+- **AI**: OpenRouter API with free models (Llama 3.2, Qwen 2.5, Mistral 7B, Gemma 2, Phi-3)
 - **Visualization**: HTML5 Canvas API for 3D rendering and real-time animation
 - **Security Frameworks**: MITRE ATT&CK, OWASP Top 10 2021, NIST CSF, PCI-DSS v4.0
 
@@ -235,10 +238,11 @@ GET /api/agent-metrics             # Agent performance stats
 ## 🎓 Technical Highlights
 
 ### AI Orchestration
-- **Multi-Model Ensemble**: Llama-3.1-70B, Mixtral-8x7B, Gemma2-9B
+- **Multi-Model Ensemble**: Llama 3.2, Qwen 2.5 Coder, Mistral 7B, Gemma 2, Phi-3 Mini
 - **Voting Mechanism**: Weighted by confidence × historical performance
 - **Memory System**: Agents learn from 100+ past missions
 - **Reflection Loop**: Self-improvement with quality scoring
+- **Free Tier**: Uses OpenRouter free models for cost-effective operation
 
 ### Security Coverage
 - **MITRE ATT&CK**: 40+ tactics and techniques
@@ -247,10 +251,10 @@ GET /api/agent-metrics             # Agent performance stats
 - **Compliance Frameworks**: 3+ standards
 
 ### Performance
-- **Sub-second Response**: Groq LPU inference
+- **Fast Response**: OpenRouter API inference
 - **Parallel Execution**: 6 agents simultaneously
 - **Real-time Updates**: WebSocket streaming
-- **Cost Optimization**: <$0.10 per mission
+- **Cost Optimization**: Free tier models available
 
 ## 🏆 Portfolio Impact
 

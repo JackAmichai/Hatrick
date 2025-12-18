@@ -1,14 +1,26 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 
 interface AnnouncerProps {
     round: number;
-    layerName: string; // e.g., "Network Infrastructure"
+    layerName: string; // e.g., "Layer 3 - Network"
+    vulnerability?: string; // e.g., "DDoS Susceptibility - No rate limiting"
     onComplete: () => void; // Tell the game to start when audio finishes
 }
 
-export const Announcer = ({ round, layerName, onComplete }: AnnouncerProps) => {
+export const Announcer = ({ round, layerName, vulnerability, onComplete }: AnnouncerProps) => {
     const [show, setShow] = useState(true);
+    const onCompleteRef = useRef(onComplete);
+    
+    // Keep ref updated
+    useEffect(() => {
+        onCompleteRef.current = onComplete;
+    }, [onComplete]);
+    
+    const handleComplete = useCallback(() => {
+        setShow(false);
+        onCompleteRef.current();
+    }, []);
 
     useEffect(() => {
         // Reset show state in case round changes
@@ -26,23 +38,19 @@ export const Announcer = ({ round, layerName, onComplete }: AnnouncerProps) => {
         if (preferredVoice) utterance.voice = preferredVoice;
 
         utterance.rate = 1.1; // Faster, more hype
-        utterance.pitch = 1.2; // Higher pitch for energy (or lower for grunt, but typically announcers shout)
+        utterance.pitch = 1.2; // Higher pitch for energy
         utterance.volume = 1;
 
         // 3. Play it (with fallback)
         utterance.onend = () => {
             setTimeout(() => {
-                setShow(false);
-                onComplete();
+                handleComplete();
             }, 500);
         };
 
         // Fallback: If TTS fails or doesn't start, force completion after 4s
         const timer = setTimeout(() => {
-            if (show) {
-                setShow(false);
-                onComplete();
-            }
+            handleComplete();
         }, 4000);
 
         window.speechSynthesis.speak(utterance);
@@ -51,7 +59,7 @@ export const Announcer = ({ round, layerName, onComplete }: AnnouncerProps) => {
             window.speechSynthesis.cancel();
             clearTimeout(timer);
         };
-    }, [round, layerName]);
+    }, [round, layerName, handleComplete]);
 
     return (
         <AnimatePresence>
@@ -68,6 +76,17 @@ export const Announcer = ({ round, layerName, onComplete }: AnnouncerProps) => {
                     <h2 className="text-4xl text-white font-mono mt-4 typing-effect">
                         {layerName}
                     </h2>
+                    {vulnerability && (
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.5 }}
+                            className="mt-6 px-6 py-3 bg-red-900/50 border border-red-500/50 rounded-lg"
+                        >
+                            <p className="text-sm text-red-300 font-mono uppercase tracking-wide">⚠️ Target Vulnerability</p>
+                            <p className="text-xl text-red-100 font-bold mt-1">{vulnerability}</p>
+                        </motion.div>
+                    )}
                 </motion.div>
             )}
         </AnimatePresence>

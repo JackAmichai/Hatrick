@@ -5,113 +5,129 @@ import { motion, AnimatePresence } from 'framer-motion';
 const missions = [
     {
         id: 1,
+        round: 1,
         title: 'Packet Storm',
         missionId: 'NETWORK_FLOOD',
         layer: 3,
         type: 'Volumetric Attack',
-        description: 'Overwhelm the bandwidth.',
+        description: 'Overwhelm the bandwidth with DDoS flood.',
+        vulnerability: 'DDoS Susceptibility - No rate limiting detected',
         difficulty: 'EASY',
         icon: Network,
         relatedIds: [2],
-        status: 'completed' as const,
+        status: 'available' as const,
         energy: 100,
         angle: 0
     },
     {
         id: 2,
+        round: 2,
         title: 'Stack Smash',
         missionId: 'BUFFER_OVERFLOW',
         layer: 7,
         type: 'Memory Corruption',
-        description: 'Overwrite the return address.',
+        description: 'Overwrite the return address via buffer overflow.',
+        vulnerability: 'Buffer Overflow - Unchecked buffer in HTTP header parsing',
         difficulty: 'HARD',
         icon: Cpu,
         relatedIds: [1, 3],
-        status: 'in-progress' as const,
+        status: 'available' as const,
         energy: 75,
         angle: 45
     },
     {
         id: 3,
+        round: 3,
         title: 'Data Heist',
         missionId: 'SQL_INJECTION',
         layer: 7,
         type: 'Logic Attack',
-        description: 'Bypass login via malformed inputs.',
+        description: 'Bypass authentication via SQL injection.',
+        vulnerability: 'SQL Injection - Unvalidated input in login form',
         difficulty: 'MEDIUM',
         icon: Database,
         relatedIds: [2, 4],
-        status: 'in-progress' as const,
+        status: 'available' as const,
         energy: 60,
         angle: 90
     },
     {
         id: 4,
+        round: 4,
         title: 'Handshake Hijack',
         missionId: 'MITM_ATTACK',
         layer: 5,
         type: 'Session Hijack',
-        description: 'Intercept the key exchange.',
+        description: 'Intercept the TLS key exchange.',
+        vulnerability: 'Weak TLS - Vulnerable OpenSSL allows Heartbleed/POODLE',
         difficulty: 'EXTREME',
         icon: Shield,
         relatedIds: [3, 5],
-        status: 'pending' as const,
+        status: 'available' as const,
         energy: 30,
         angle: 135
     },
     {
         id: 5,
+        round: 5,
         title: 'IoT Takeover',
         missionId: 'IOT_ATTACK',
         layer: 6,
         type: 'IoT Exploitation',
-        description: 'Compromise smart devices.',
+        description: 'Compromise smart devices via default credentials.',
+        vulnerability: 'IoT Default Credentials - admin:admin access enabled',
         difficulty: 'MEDIUM',
         icon: Network,
         relatedIds: [4, 6],
-        status: 'pending' as const,
+        status: 'available' as const,
         energy: 65,
         angle: 180
     },
     {
         id: 6,
+        round: 6,
         title: 'Cloud Breach',
         missionId: 'CLOUD_BREACH',
         layer: 8,
         type: 'Cloud Misconfiguration',
-        description: 'Exploit S3 buckets and IAM.',
+        description: 'Exploit S3 buckets and IAM misconfigurations.',
+        vulnerability: 'S3 Bucket Misconfiguration - Public read access on sensitive data',
         difficulty: 'HIGH',
         icon: Database,
         relatedIds: [5, 7],
-        status: 'pending' as const,
+        status: 'available' as const,
         energy: 50,
         angle: 225
     },
     {
         id: 7,
+        round: 7,
         title: 'Supply Chain',
         missionId: 'SUPPLY_CHAIN',
         layer: 9,
         type: 'Dependency Attack',
-        description: 'Poison the build pipeline.',
+        description: 'Poison the build pipeline via dependency confusion.',
+        vulnerability: 'Dependency Confusion - Private package name collision',
         difficulty: 'EXTREME',
         icon: Shield,
         relatedIds: [6, 8],
-        status: 'pending' as const,
+        status: 'available' as const,
         energy: 40,
         angle: 270
     },
     {
         id: 8,
+        round: 8,
         title: 'API Exploit',
         missionId: 'API_EXPLOIT',
         layer: 7,
         type: 'BOLA & GraphQL',
-        description: 'Break API authorization.',
+        description: 'Break API authorization via object-level flaws.',
+        vulnerability: 'BOLA - Broken Object Level Authorization in REST API',
         difficulty: 'MEDIUM',
         icon: Cpu,
         relatedIds: [7, 1],
-        status: 'pending' as const,
+        status: 'available' as const,
         energy: 70,
         angle: 315
     }
@@ -207,8 +223,8 @@ export default function HatTrickHomepage({ onSelect }: HomepageProps) {
 
     const getStatusColor = (status: string) => {
         switch (status) {
-            case 'completed': return 'bg-green-500 border-green-400';
-            case 'in-progress': return 'bg-blue-500 border-blue-400';
+            case 'available': return 'bg-green-500 border-green-400';
+            case 'completed': return 'bg-blue-500 border-blue-400';
             case 'pending': return 'bg-gray-500 border-gray-400';
             default: return 'bg-gray-500 border-gray-400';
         }
@@ -407,10 +423,9 @@ export default function HatTrickHomepage({ onSelect }: HomepageProps) {
                                             {/* Status Badge */}
                                             <div className="flex items-center justify-between mb-3">
                                                 <span className={`px-3 py-1 text-xs font-bold rounded-full ${getStatusColor(mission.status)} text-white`}>
-                                                    {mission.status === 'completed' ? 'COMPLETE' :
-                                                        mission.status === 'in-progress' ? 'IN PROGRESS' : 'PENDING'}
+                                                    {mission.status === 'available' ? 'AVAILABLE' : 'PENDING'}
                                                 </span>
-                                                <span className={`text-xs font-mono opacity-60`}>LAYER {mission.layer}</span>
+                                                <span className={`text-xs font-mono opacity-60`}>ROUND {mission.round}</span>
                                             </div>
 
                                             {/* Title */}
