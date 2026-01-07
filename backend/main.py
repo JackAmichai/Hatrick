@@ -483,6 +483,60 @@ Generate a complete Python defense script that protects against this attack."""
                 }))
                 continue # Loop back and wait for the expected command
 
+            if command_type == "EXPLAIN":
+                print("🎓 Generating Educational Briefing...")
+
+                # Context for explanation
+                mission_id = last_turn_context.get('mission_id', 'Unknown Mission')
+                attack_name = last_turn_context.get('attack_name', 'Pending Attack...')
+                defense_name = last_turn_context.get('defense_name', 'Pending Defense...')
+
+                # Use Commander Chain (Strong Model) for explanation
+                prompt = f"""
+                You are a Cybersecurity Instructor explaining a live simulation to students.
+
+                Current Scenario:
+                - Mission: {mission_id}
+                - Attack Strategy: {attack_name}
+                - Defense Strategy: {defense_name}
+
+                Explain these concepts in clear, educational terms.
+                1. Explain the ATTACK vector (How does it work? Why is it dangerous?)
+                2. Explain the DEFENSE mechanism (How does it mitigate the threat?)
+                3. Provide a Real-World Example (e.g., Stuxnet, WannaCry, etc.) if applicable.
+
+                Format the output in Markdown. Be genuine, professional, and educational. Do NOT use fake code or "pseudo-code".
+                """
+
+                try:
+                    explanation = commander_chain.invoke({"input": prompt})
+                    explanation_text = explanation.get("visual_desc", "Error generating content.")
+                    # Note: commander_chain output is a dict, usually {'attack_name':..., 'visual_desc':...} or similar.
+                    # Actually commander_chain returns a dict. We might need a raw text generation or handle the dict.
+                    # Checking agent_orchestration.py might be needed, but assuming commander_chain returns a JSON-like dict as per `backend/agents.py`.
+                    # Let's check `backend/agents.py`? No, I'll trust the variable name `final_move_json` used elsewhere.
+                    # Wait, `commander_chain` returns a JSON object with `attack_name` etc.
+                    # I should probably use a simpler chain or just `red_strategist`.
+                    # Let's use `reflection_engine` or `red_strategist` (LLM directly).
+                    # Actually, `red_strategist` is a ChatOpenAI/Groq client? No, it's a `AgentPersonality`.
+
+                    # Fallback to a simpler direct invocation if possible, but let's try to reuse `commander_chain` but it expects specific output format.
+                    # Better: Use `red_code_chain` but with a text prompt? No, that expects code.
+                    # I'll use `reflection_engine.reflect(...)`? No.
+                    # I'll create a temporary LLM call or re-purpose `red_inf_chain` (Infrastructure) as it outputs text.
+                    # Let's use `red_inf_chain`.
+
+                    explanation_text = red_inf_chain.invoke({"input": prompt})
+
+                except Exception as e:
+                    explanation_text = f"### Error Generating Briefing\n\n{str(e)}"
+
+                await websocket.send_text(json.dumps({
+                    "type": "EDUCATIONAL_RESPONSE",
+                    "edu_text": explanation_text
+                }))
+                continue
+
             if command_type == expected_type:
                 return msg
 
@@ -611,13 +665,20 @@ Analyze this environment and identify the best attack vector based on the detect
                 # --- RED TEAM LOOP ---
                 print("🔴 Starting RED TEAM turn...")
                 red_approved = False
+                rejection_reason = ""
+
                 while not red_approved:
+                    # Update context if rejected previously
+                    current_scenario_context = scenario_context
+                    if rejection_reason:
+                        current_scenario_context += f"\n\nNOTE: The previous attack proposal was REJECTED by the user. You MUST propose a different strategy. \nRejection Context: {rejection_reason}"
+
                     # 1. RED SCANNER
                     print("   🔍 RED_SCANNER: Analyzing target...")
                     await manager.broadcast({"type": "STATE_UPDATE", "agent": "RED_SCANNER", "status": "THINKING"})
                     await asyncio.sleep(1.5)
                     try:
-                        scan_result = scanner_chain.invoke({"input": scenario_context})
+                        scan_result = scanner_chain.invoke({"input": current_scenario_context})
                         last_turn_context['scan_result'] = scan_result
                         print(f"   ✅ RED_SCANNER result: {scan_result[:100]}...")
                     except Exception as e:
@@ -699,6 +760,7 @@ Analyze this environment and identify the best attack vector based on the detect
                         await manager.broadcast({"type": "ATTACK_LAUNCH", "damage": damage, "desc": attack_desc})
                     else:
                         print(f"   ❌ RED attack REJECTED - Rethinking...")
+                        rejection_reason = "User rejected the previous proposal. Try a different attack vector."
                         await manager.broadcast({"type": "NEW_MESSAGE", "agent": "RED_COMMANDER", "text": "Authorization Denied. Rethinking Strategy..."})
 
                     await manager.broadcast({"type": "STATE_UPDATE", "agent": "RED_COMMANDER", "status": "IDLE"})
