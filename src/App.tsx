@@ -7,6 +7,7 @@ import { MITMAnimation } from "./components/MITMAnimation";
 import { MemoryStack } from "./components/MemoryStack"; // New Component
 import { ApprovalModal } from "./components/ApprovalModal"; // New Import
 import { CodeViewer } from "./components/CodeViewer"; // Code Viewer
+import { EducationalModal } from "./components/EducationalModal"; // New Import
 import HatTrickHomepage from "./components/HatTrickHomepage"; // New Homepage
 import { useGameSocket } from "./hooks/useGameSocket";
 
@@ -29,12 +30,12 @@ const defenseTeam = [
 ];
 
 function App() {
-  const { messages, statuses, health, isHit, mitigationScore, defenseDesc, proposal, codeData, startGame, requestSummary, requestCode, resetState, submitDecision, setCodeData } = useGameSocket();
+  const { messages, statuses, health, isHit, mitigationScore, defenseDesc, proposal, codeData, educationalContent, startGame, requestSummary, requestCode, requestExplanation, resetState, submitDecision, setCodeData, setEducationalContent } = useGameSocket();
   const [roundState, setRoundState] = useState<"MENU" | "INTRO" | "FIGHT">("MENU"); // Changed initial state to MENU
   const [mission, setMission] = useState<string | null>(null);
 
   // Logical Progression: Network (L3) -> MITM (L5) -> Stack (L7) -> Data (L7) -> Advanced
-  const MISSION_ORDER = ["NETWORK_FLOOD", "BUFFER_OVERFLOW", "SQL_INJECTION", "MITM_ATTACK", "IOT_ATTACK", "CLOUD_BREACH", "SUPPLY_CHAIN", "API_EXPLOIT"];
+  const MISSION_ORDER = ["NETWORK_FLOOD", "BUFFER_OVERFLOW", "SQL_INJECTION", "MITM_ATTACK", "IOT_ATTACK", "CLOUD_BREACH", "SUPPLY_CHAIN", "API_EXPLOIT", "INSIDER_THREAT", "SOCIAL_ENGINEERING"];
   
   // Mission to Round mapping with vulnerability context
   const MISSION_ROUND_MAP: Record<string, { round: number; vulnerability: string; layer: string }> = {
@@ -45,7 +46,9 @@ function App() {
     "IOT_ATTACK": { round: 5, vulnerability: "IoT Default Credentials - admin:admin access", layer: "Layer 6 - IoT" },
     "CLOUD_BREACH": { round: 6, vulnerability: "S3 Misconfiguration - Public read access", layer: "Layer 8 - Cloud" },
     "SUPPLY_CHAIN": { round: 7, vulnerability: "Dependency Confusion - Package name collision", layer: "Layer 9 - Supply Chain" },
-    "API_EXPLOIT": { round: 8, vulnerability: "BOLA - Broken Object Level Authorization", layer: "Layer 7 - API" }
+    "API_EXPLOIT": { round: 8, vulnerability: "BOLA - Broken Object Level Authorization", layer: "Layer 7 - API" },
+    "INSIDER_THREAT": { round: 9, vulnerability: "Privilege Escalation - Malicious Insider detected", layer: "Layer 8 - Human/Insider" },
+    "SOCIAL_ENGINEERING": { round: 10, vulnerability: "Phishing Susceptibility - Employee credentials compromised", layer: "Layer 8 - Human" }
   };
 
   const getCurrentRound = () => mission ? MISSION_ROUND_MAP[mission]?.round || 1 : 1;
@@ -113,6 +116,14 @@ function App() {
         description={codeData?.description || ""}
       />
 
+      {/* EDUCATIONAL MODAL */}
+      <EducationalModal
+        isOpen={!!educationalContent}
+        content={educationalContent || ""}
+        onClose={() => setEducationalContent(null)}
+        isLoading={educationalContent === "LOADING"}
+      />
+
       {/* 3D Mission Homepage */}
       {roundState === "MENU" && (
         <div className="absolute inset-0 z-50">
@@ -156,6 +167,15 @@ function App() {
           <div className="mt-1 px-3 py-1 bg-red-900/30 border border-red-500/30 rounded text-xs text-red-300 font-mono">
             ⚠️ {getCurrentVulnerability()}
           </div>
+          <button
+              onClick={() => {
+                setEducationalContent("LOADING");
+                requestExplanation();
+              }}
+              className="mt-2 px-4 py-1 bg-indigo-600/50 hover:bg-indigo-500/50 text-indigo-200 text-xs font-mono border border-indigo-500/30 rounded transition-colors flex items-center gap-1"
+          >
+              <span>🎓</span> LEARN MORE
+          </button>
         </div>
       )}
 
