@@ -8,6 +8,7 @@ import { MemoryStack } from "./components/MemoryStack"; // New Component
 import { ApprovalModal } from "./components/ApprovalModal"; // New Import
 import { CodeViewer } from "./components/CodeViewer"; // Code Viewer
 import HatTrickHomepage from "./components/HatTrickHomepage"; // New Homepage
+import { BuyMeCoffee } from "./components/BuyMeCoffee"; // Buy Me Coffee
 import { useGameSocket } from "./hooks/useGameSocket";
 
 // RED TEAM - OpenRouter FREE LLM Models (Attack-oriented)
@@ -275,6 +276,9 @@ function App() {
           NEXT LAYER ➡️
         </button>
       )}
+
+      {/* Buy Me Coffee Button */}
+      <BuyMeCoffee />
     </div>
   );
 }
