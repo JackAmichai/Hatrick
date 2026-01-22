@@ -11,7 +11,7 @@ interface Proposal {
 }
 
 interface GameEvent {
-    type: "STATE_UPDATE" | "NEW_MESSAGE" | "IMPACT" | "PROPOSAL" | "CODE_RESPONSE"; // Added CODE_RESPONSE
+    type: "STATE_UPDATE" | "NEW_MESSAGE" | "IMPACT" | "PROPOSAL" | "CODE_RESPONSE" | "EDUCATIONAL_RESPONSE"; // Added EDUCATIONAL_RESPONSE
     agent: string; // e.g., "RED_SCANNER"
     status?: AgentStatus;
     text?: string;
@@ -26,6 +26,8 @@ interface GameEvent {
     code?: string;
     title?: string;
     environment?: Record<string, unknown>;
+    // Educational fields
+    edu_text?: string;
 }
 
 export const useGameSocket = () => {
@@ -37,6 +39,7 @@ export const useGameSocket = () => {
     const [defenseDesc, setDefenseDesc] = useState(""); // Added state
     const [proposal, setProposal] = useState<Proposal | null>(null); // Added state
     const [codeData, setCodeData] = useState<{ team: "RED" | "BLUE"; code: string; title: string; description: string } | null>(null);
+    const [educationalContent, setEducationalContent] = useState<string | null>(null);
     const socketRef = useRef<WebSocket | null>(null);
     const backendActiveRef = useRef(false);
     const backendFallbackTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -285,6 +288,10 @@ export const useGameSocket = () => {
                         description: data.description ?? ""
                     });
                 }
+
+                if (data.type === "EDUCATIONAL_RESPONSE" && data.edu_text) {
+                    setEducationalContent(data.edu_text);
+                }
             } catch (error) {
                 console.error("Failed to parse game event", error, event.data);
             }
@@ -351,6 +358,14 @@ export const useGameSocket = () => {
         }
     };
 
+    const requestExplanation = () => {
+        if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
+            socketRef.current.send(JSON.stringify({ type: "EXPLAIN" }));
+        } else {
+            setEducationalContent("## Mock Explanation\n\n**Attack:** SQL Injection\n**Defense:** WAF\n\nThis is a fallback message because the backend is not connected.");
+        }
+    };
+
     const submitDecision = (approved: boolean) => {
         setProposal(null); // Clear UI immediately
         if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
@@ -380,7 +395,8 @@ export const useGameSocket = () => {
         setDefenseDesc("");
         setProposal(null);
         setCodeData(null);
+        setEducationalContent(null);
     };
 
-    return { messages, statuses, health, isHit, mitigationScore, defenseDesc, proposal, codeData, startGame, requestSummary, requestCode, resetState, submitDecision, setCodeData };
+    return { messages, statuses, health, isHit, mitigationScore, defenseDesc, proposal, codeData, educationalContent, startGame, requestSummary, requestCode, requestExplanation, resetState, submitDecision, setCodeData, setEducationalContent };
 };

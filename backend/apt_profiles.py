@@ -329,7 +329,8 @@ APT_PROFILES = {
     "APT29": APT29CozyBear(),
     "APT28": APT28FancyBear(),
     "LAZARUS": LazarusGroup(),
-    "APT38": APT38()
+    "APT38": APT38(),
+    "INSIDER": PsychologicalInsider()
 }
 
 

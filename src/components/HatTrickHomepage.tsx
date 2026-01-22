@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Network, Cpu, Database, Shield, ChevronRight, Terminal, Zap, Moon, Sun } from 'lucide-react';
+import { Network, Cpu, Database, Shield, ChevronRight, Terminal, Zap, Moon, Sun, User, Mail } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const missions = [
@@ -126,10 +126,42 @@ const missions = [
         vulnerability: 'BOLA - Broken Object Level Authorization in REST API',
         difficulty: 'MEDIUM',
         icon: Cpu,
-        relatedIds: [7, 1],
+        relatedIds: [7, 9],
         status: 'available' as const,
         energy: 70,
         angle: 315
+    },
+    {
+        id: 9,
+        round: 9,
+        title: 'Insider Threat',
+        missionId: 'INSIDER_THREAT',
+        layer: 8,
+        type: 'Human Element',
+        description: 'Detect and mitigate malicious insider activity.',
+        vulnerability: 'Privilege Escalation - Malicious Insider detected',
+        difficulty: 'HARD',
+        icon: User,
+        relatedIds: [8, 10],
+        status: 'available' as const,
+        energy: 80,
+        angle: 0
+    },
+    {
+        id: 10,
+        round: 10,
+        title: 'Social Eng.',
+        missionId: 'SOCIAL_ENGINEERING',
+        layer: 8,
+        type: 'Phishing',
+        description: 'Defend against phishing and social engineering.',
+        vulnerability: 'Phishing Susceptibility - Employee credentials compromised',
+        difficulty: 'EXTREME',
+        icon: Mail,
+        relatedIds: [9, 1],
+        status: 'available' as const,
+        energy: 90,
+        angle: 0
     }
 ];
 
