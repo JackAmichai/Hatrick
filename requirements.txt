@@ -1,0 +1,11 @@
+fastapi==0.115.0
+uvicorn[standard]==0.32.0
+websockets==13.1
+python-multipart==0.0.12
+langchain==0.3.0
+langchain-groq==0.2.0
+langgraph==0.2.45
+langchain-community==0.3.0
+dataclasses-json==0.6.7
+python-dotenv==1.0.1
+pydantic==2.9.0
