@@ -2,8 +2,6 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "installCommand": "npm install",
-  "functions": {},
-  "ignoreCommand": "echo 'ignoring backend build'",
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
   ]
