@@ -1,4 +1,10 @@
 {
+  "version": 2,
+  "functions": {
+    "api/index.py": {
+      "runtime": "python3.11"
+    }
+  },
   "builds": [
     {
       "src": "package.json",
@@ -9,6 +15,10 @@
     }
   ],
   "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/index.py"
+    },
     {
       "source": "/(.*)",
       "destination": "/index.html"
