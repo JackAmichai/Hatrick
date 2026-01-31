@@ -1,11 +1,12 @@
 {
-  "version": 2,
-  "functions": {
-    "api/index.py": {
-      "runtime": "python3.11"
-    }
-  },
   "builds": [
+    {
+      "src": "api/index.py",
+      "use": "@vercel/python",
+      "config": {
+        "runtime": "python3.11"
+      }
+    },
     {
       "src": "package.json",
       "use": "@vercel/static-build",
