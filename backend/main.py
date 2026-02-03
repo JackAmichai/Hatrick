@@ -300,33 +300,33 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-from backend.agents import (
+from agents import (
     scanner_chain, weaponizer_chain, commander_chain,
     watchman_chain, engineer_chain, warden_chain,
     red_inf_chain, red_data_chain, blue_inf_chain, blue_data_chain,
     red_code_chain, blue_code_chain
 )
-from backend.venv_simulator import VirtualEnvironment
-from backend.agent_orchestration import (
+from venv_simulator import VirtualEnvironment
+from agent_orchestration import (
     voting_orchestrator, red_strategist, blue_strategist, reflection_engine,
     AgentProposal, AgentPersonality
 )
-from backend.advanced_attacks import (
+from advanced_attacks import (
     IoTDeviceSimulator, CloudMisconfiguration, SupplyChainAttack,
     APIExploitation, RansomwareSimulation, BlockchainAttack,
     CICDCompromise, InsiderThreat, SocialEngineering
 )
-from backend.advanced_defenses import (
+from advanced_defenses import (
     AISecurityInformationEventManagement, DeceptionTechnology,
     ZeroTrustArchitecture, ThreatIntelligenceFeed, SOARPlaybooks,
     DataLossPrevention, BehavioralBiometrics, NetworkSegmentation,
     ComplianceMonitoring, PurpleTeam
 )
-from backend.apt_profiles import (
+from apt_profiles import (
     APT29CozyBear, APT28FancyBear, LazarusGroup, APT38,
     generate_apt_scenario, generate_iocs_for_apt
 )
-from backend.report_generator import PenTestReportGenerator
+from report_generator import PenTestReportGenerator
 
 # --- THE CONNECTION MANAGER ---
 class ConnectionManager:

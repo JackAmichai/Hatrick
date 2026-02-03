@@ -31,13 +31,13 @@ const defenseTeam = [
 ];
 
 function App() {
-  const { messages, statuses, health, isHit, mitigationScore, defenseDesc, proposal, codeData, educationalContent, startGame, requestSummary, requestCode, requestExplanation, resetState, submitDecision, setCodeData, setEducationalContent } = useGameSocket();
+  const { messages, statuses, health, isHit, mitigationScore, defenseDesc, proposal, codeData, educationalContent, isConnected, connectionError, startGame, requestSummary, requestCode, requestExplanation, resetState, submitDecision, setCodeData, setEducationalContent } = useGameSocket();
   const [roundState, setRoundState] = useState<"MENU" | "INTRO" | "FIGHT">("MENU"); // Changed initial state to MENU
   const [mission, setMission] = useState<string | null>(null);
 
   // Logical Progression: Network (L3) -> MITM (L5) -> Stack (L7) -> Data (L7) -> Advanced
   const MISSION_ORDER = ["NETWORK_FLOOD", "BUFFER_OVERFLOW", "SQL_INJECTION", "MITM_ATTACK", "IOT_ATTACK", "CLOUD_BREACH", "SUPPLY_CHAIN", "API_EXPLOIT", "INSIDER_THREAT", "SOCIAL_ENGINEERING"];
-  
+
   // Mission to Round mapping with vulnerability context
   const MISSION_ROUND_MAP: Record<string, { round: number; vulnerability: string; layer: string }> = {
     "NETWORK_FLOOD": { round: 1, vulnerability: "DDoS Susceptibility - No rate limiting", layer: "Layer 3 - Network" },
@@ -96,6 +96,19 @@ function App() {
   return (
     <div className="min-h-screen bg-neutral-950 flex flex-col items-center justify-center overflow-hidden relative">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-neutral-800/20 via-neutral-950 to-neutral-950 pointer-events-none" />
+
+      {/* CONNECTION STATUS BANNER */}
+      {!isConnected && (
+        <div className="fixed top-0 left-0 right-0 z-[200] bg-red-600/90 text-white text-center py-2 px-4 text-sm font-medium backdrop-blur-sm">
+          ⚠️ {connectionError || "Connecting to game server..."}
+          <span className="ml-2 animate-pulse">●</span>
+        </div>
+      )}
+      {isConnected && roundState === "MENU" && (
+        <div className="fixed top-0 left-0 right-0 z-[200] bg-green-600/90 text-white text-center py-2 px-4 text-sm font-medium backdrop-blur-sm">
+          ✅ Connected to game server - Ready to play!
+        </div>
+      )}
 
       {/* APPROVAL MODAL */}
       <ApprovalModal
@@ -169,13 +182,13 @@ function App() {
             ⚠️ {getCurrentVulnerability()}
           </div>
           <button
-              onClick={() => {
-                setEducationalContent("LOADING");
-                requestExplanation();
-              }}
-              className="mt-2 px-4 py-1 bg-indigo-600/50 hover:bg-indigo-500/50 text-indigo-200 text-xs font-mono border border-indigo-500/30 rounded transition-colors flex items-center gap-1"
+            onClick={() => {
+              setEducationalContent("LOADING");
+              requestExplanation();
+            }}
+            className="mt-2 px-4 py-1 bg-indigo-600/50 hover:bg-indigo-500/50 text-indigo-200 text-xs font-mono border border-indigo-500/30 rounded transition-colors flex items-center gap-1"
           >
-              <span>🎓</span> LEARN MORE
+            <span>🎓</span> LEARN MORE
           </button>
         </div>
       )}
