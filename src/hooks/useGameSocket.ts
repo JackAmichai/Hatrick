@@ -330,12 +330,12 @@ export const useGameSocket = () => {
         if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
             socketRef.current.send(JSON.stringify({ type: "SUMMARIZE", team }));
         } else {
-            // MOCK SUMMARY (Fallback for Vercel/Offline)
+            // MOCK SUMMARY (Fallback for Vercel/Offline) - Merge with existing messages
             console.log("Generating Mock Summary...");
             if (team === 'RED') {
-                setMessages({ RED_COMMANDER: "📢 RED REPORT: Scanned Localhost... Found SQLi Vector... Executed Payload." });
+                setMessages(prev => ({ ...prev, RED_COMMANDER: "📢 RED REPORT: Scanned target system... Identified vulnerabilities... Attack deployed. Defense response pending." }));
             } else {
-                setMessages({ BLUE_COMMANDER: "🛡️ BLUE REPORT: Detected Signature... WAF Ruleset Updated... Attack Mitigated." });
+                setMessages(prev => ({ ...prev, BLUE_COMMANDER: "🛡️ BLUE REPORT: Threat detected and analyzed... Defense countermeasures proposed... System protected." }));
             }
         }
     };
@@ -377,11 +377,37 @@ export const useGameSocket = () => {
                 mockStepRef.current++;
                 // Force immediate update if you want, but the interval will catch it
             } else {
-                // If rejected in mock mode, maybe just loop back or show a "Rethinking" message
-                setMessages({ RED_COMMANDER: "⚠️ Plan Rejected. Rethinking..." });
-                setTimeout(() => {
-                    mockStepRef.current++; // Just proceed for the sake of the demo, or loop back complexity
-                }, 1000);
+                // Rejection triggers rethinking: go back to scanning phase with visual feedback
+                const currentStep = mockStepRef.current;
+                
+                // Determine which team is being rejected based on current step
+                if (currentStep === 6) {
+                    // RED team rejection - go back to step 1 to rethink attack
+                    setMessages(prev => ({ ...prev, RED_COMMANDER: "⚠️ Authorization Denied. Rethinking attack strategy..." }));
+                    setStatuses(prev => ({ ...prev, RED_COMMANDER: "THINKING" }));
+                    setTimeout(() => {
+                        // Reset RED team to scanner phase
+                        mockStepRef.current = 1;
+                        setStatuses(prev => ({ 
+                            ...prev, 
+                            RED_COMMANDER: "IDLE",
+                            RED_SCANNER: "THINKING"
+                        }));
+                    }, 1500);
+                } else if (currentStep === 13) {
+                    // BLUE team rejection - go back to step 8 to rethink defense
+                    setMessages(prev => ({ ...prev, BLUE_COMMANDER: "⚠️ Plan Rejected. Recalculating defense..." }));
+                    setStatuses(prev => ({ ...prev, BLUE_COMMANDER: "THINKING" }));
+                    setTimeout(() => {
+                        // Reset BLUE team to scanner phase
+                        mockStepRef.current = 8;
+                        setStatuses(prev => ({ 
+                            ...prev, 
+                            BLUE_COMMANDER: "IDLE",
+                            BLUE_SCANNER: "THINKING"
+                        }));
+                    }, 1500);
+                }
             }
         }
     };
